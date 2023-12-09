@@ -1,0 +1,8 @@
+#ifndef CMW_CONFIG_ROLEATTRIBUTES_H_
+#define CMW_CONFIG_ROLEATTRIBUTES_H_
+
+
+
+
+
+#endif
