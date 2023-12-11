@@ -14,7 +14,7 @@ namespace{
 //返回当前执行的进程的路径
 const std::string& kEmptyString = "";
 std::string program_path(){
-    char path[PATH_MAX];
+    char path[4096];
     auto len = readlink("proc/self/exe", path , sizeof(path) - 1);
     if(len == -1 ){
         return kEmptyString;
@@ -46,7 +46,7 @@ void GlobalData::InitHostInfo() {
     gethostname(host_name , sizeof(host_name));
 
     // 使用本地回环ip地址
-    host_ip_ = "127.0.0.1"
+    host_ip_ = "127.0.0.1";
 
     const char* ip_env = getenv("CMW_IP");
     if(ip_env != nullptr)
@@ -94,12 +94,12 @@ void GlobalData::InitHostInfo() {
     //free 掉链表
     freeifaddrs(ifaddr);
 
-    std::<<"host ip: " << host_ip_ << std::endl;
+    std::cout<<"host ip: " << host_ip_ << std::endl;
 
 }
 
 GlobalData::~GlobalData() {}
-int GlobalData::ProcessId() const { return process_id_; }
+int GlobalData::ProcessId() const { return porcess_id_; }
 void GlobalData::SetProcessGroup(const std::string& process_group) {
   process_group_ = process_group;
 }

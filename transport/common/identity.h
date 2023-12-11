@@ -6,8 +6,8 @@
  * @Creat Date : 2023-12-05
  * 
  */
-#ifndef HNU_TRANSPORT_COMMON_IDENTITY_H_
-#define HNU_TRANSPORT_COMMON_IDENTITY_H_
+#ifndef CMW_TRANSPORT_COMMON_IDENTITY_H_
+#define CMW_TRANSPORT_COMMON_IDENTITY_H_
 
 #include <cstdint>
 #include <cstring>

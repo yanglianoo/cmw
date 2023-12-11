@@ -8,7 +8,6 @@ namespace hnu {
 namespace cmw {
 namespace common {
 
-using hnu::cmw::base;
 
 
 class GlobalData {
@@ -18,8 +17,10 @@ class GlobalData {
   //返回当前进程的ID
   int ProcessId() const;
   void SetProcessGroup(const std::string& process_group);
+  const std::string& ProcessGroup() const;
   const std::string& HostIp() const;
   const std::string& HostName() const;
+
   
   private:
     void InitHostInfo();
@@ -41,7 +42,7 @@ class GlobalData {
     //GlobalData为全局单例
     DECLARE_SINGLETON(GlobalData)
     
-}
+};
 
 }
 }
