@@ -109,6 +109,16 @@ const std::string& GlobalData::ProcessGroup() const { return process_group_; }
 const std::string& GlobalData::HostIp() const { return host_ip_; }
 const std::string& GlobalData::HostName() const { return host_name_; }
 
+std::string GlobalData::GetChannelById(uint64_t id)
+{
+    std::string* channel = nullptr;
+    if(channel_id_map_.Get(id, &channel))
+    {
+        return *channel;
+    }
+}
+
+
 }
 }
 }

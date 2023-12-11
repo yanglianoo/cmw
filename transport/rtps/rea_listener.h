@@ -16,7 +16,7 @@ class Rea_listener : public eprosima::fastrtps::rtps::ReaderListener
 public:
         using NewMsgCallback = std::function<void(
             const std::shared_ptr<std::string>& msg_str, 
-            const MessageInfo& msg_info)>
+            const MessageInfo& msg_info)>;
 
         explicit Rea_listener(const NewMsgCallback& callback);
         virtual ~Rea_listener();

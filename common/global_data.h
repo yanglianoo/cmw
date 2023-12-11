@@ -8,7 +8,7 @@ namespace hnu {
 namespace cmw {
 namespace common {
 
-
+using namespace base;
 
 class GlobalData {
  public:
@@ -21,7 +21,8 @@ class GlobalData {
   const std::string& HostIp() const;
   const std::string& HostName() const;
 
-  
+  static std::string GetChannelById(uint64_t id);
+
   private:
     void InitHostInfo();
     // 运行机器的配置信息
@@ -38,6 +39,10 @@ class GlobalData {
      
     // sched policy info  暂时不支持调度
     std::string sched_name_ = "HNU_CMW_DEFAULT";  
+
+    //
+    static AtomicHashMap<uint64_t, std::string, 256> channel_id_map_;   //全局 channel_id_map_ 表
+
 
     //GlobalData为全局单例
     DECLARE_SINGLETON(GlobalData)

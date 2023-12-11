@@ -22,6 +22,13 @@ typename std::enable_if<!HasShutdown<T>::value>::type CallShutdown(T *instance){
     (void)instance;
 }
 
+
+
+#undef UNUSED
+#undef DISALLOW_COPY_AND_ASSIGN
+
+#define UNUSED(param)  (void)param
+
 /*禁用拷贝构造和 = 赋值*/
 #define DISALLOW_COPY_AND_ASSIGN(classname) \
   classname(const classname &) = delete;    \

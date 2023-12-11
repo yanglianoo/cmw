@@ -1,7 +1,7 @@
 #include <cmw/transport/message/message_info.h>
 
 #include <cstring>
-
+#include <iostream>
 namespace hnu    {
 namespace cmw   {
 namespace transport {

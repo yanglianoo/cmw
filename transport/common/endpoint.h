@@ -23,7 +23,7 @@ class Endpoint
         const Identity& id() const{ return id_;}
         const RoleAttributes& attributes() const { return attr_;}
 
-    private:
+    protected:
         bool enabled_;
         Identity id_;
         RoleAttributes attr_;

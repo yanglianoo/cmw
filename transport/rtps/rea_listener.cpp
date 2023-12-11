@@ -2,20 +2,29 @@
 #include <fastrtps/rtps/reader/RTPSReader.h>
 #include <fastrtps/rtps/rtps_fwd.h>
 #include <fastrtps/rtps/common/SequenceNumber.h>
+#include <memory.h>
+
+using GUID_t = eprosima::fastrtps::rtps::GUID_t;
+
 namespace hnu    {
 namespace cmw   {
 namespace transport {
 
-Rea_listener::ReaderListener(const NewMsgCallback& callback) : callback_(callback) {}
+Rea_listener::Rea_listener( const NewMsgCallback& callback)
+         : callback_(callback) {}
+
 Rea_listener::~Rea_listener() {}
+
+
 void Rea_listener::onNewCacheChangeAdded(
                 eprosima::fastrtps::rtps::RTPSReader* reader,
                 const eprosima::fastrtps::rtps::CacheChange_t* const change) 
 {
 
     std::lock_guard<std::mutex> lock(mutex_);
-
-    char* ptr = reinterpret_cast<char*>(&change->writerGUID());
+    
+    //GUID_t是rtps中实体的标识符
+    char* ptr = reinterpret_cast<char*>(const_cast<GUID_t*>(&change->writerGUID));
 
     Identity sender_id(false);
     sender_id.set_data(ptr);
