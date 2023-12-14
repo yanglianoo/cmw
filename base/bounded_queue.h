@@ -142,6 +142,7 @@ bool BoundedQueue<T>::Enqueue(T&& element) {
   return true;
 }
 
+
 template <typename T>
 bool BoundedQueue<T>::Dequeue(T* element) {
   uint64_t new_head = 0;

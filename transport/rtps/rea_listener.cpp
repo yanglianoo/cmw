@@ -22,9 +22,10 @@ void Rea_listener::onNewCacheChangeAdded(
 {
 
     std::lock_guard<std::mutex> lock(mutex_);
-    
-    //GUID_t是rtps中实体的标识符
-    char* ptr = reinterpret_cast<char*>(const_cast<GUID_t*>(&change->writerGUID));
+
+    //GUID_t是rtps中实体的标识符,每个实体都是唯一的
+    char* ptr = reinterpret_cast<char*>(const_cast<GUID_t*>
+                            (&change->write_params.sample_identity().writer_guid()));
 
     Identity sender_id(false);
     sender_id.set_data(ptr);
@@ -40,7 +41,7 @@ void Rea_listener::onNewCacheChangeAdded(
 
     // 这里可以修改callback 直接传递二进制数据流的数据和长度 
     std::shared_ptr<std::string> msg_str = 
-        std::make_shared<std::string>(change->serializedPayload.data,change->serializedPayload.length);
+        std::make_shared<std::string>((char*)change->serializedPayload.data,change->serializedPayload.length);
 
     callback_(msg_str, msg_info_);
 }

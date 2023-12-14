@@ -8,7 +8,7 @@ namespace common {
 
 
 std::string GetFileName(const std::string &path,
-                        const bool remove_extension = false)
+                        const bool remove_extension )
 {
     // 找到字符串中最后一个 `/`的位置
     std::string::size_type start = path.rfind('/');

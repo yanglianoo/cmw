@@ -24,6 +24,7 @@ std::string program_path(){
 
     return std::string(path);
 }
+}
 
 GlobalData::GlobalData() {
     InitHostInfo();
@@ -116,10 +117,10 @@ std::string GlobalData::GetChannelById(uint64_t id)
     {
         return *channel;
     }
+    return kEmptyString;
 }
 
 
-}
 }
 }
 }

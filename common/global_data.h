@@ -8,12 +8,12 @@ namespace hnu {
 namespace cmw {
 namespace common {
 
-using namespace base;
+
 
 class GlobalData {
  public:
   ~GlobalData();
-  
+
   //返回当前进程的ID
   int ProcessId() const;
   void SetProcessGroup(const std::string& process_group);
@@ -41,7 +41,7 @@ class GlobalData {
     std::string sched_name_ = "HNU_CMW_DEFAULT";  
 
     //
-    static AtomicHashMap<uint64_t, std::string, 256> channel_id_map_;   //全局 channel_id_map_ 表
+    static base::AtomicHashMap<uint64_t, std::string, 256> channel_id_map_;   //全局 channel_id_map_ 表
 
 
     //GlobalData为全局单例

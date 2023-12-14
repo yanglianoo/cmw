@@ -68,7 +68,8 @@ bool AttributesFiller::FillInWriterAttr(const std::string& channel_name,
     default:
         break;
     }
-            
+
+    return true;     
 }
 
 
@@ -121,6 +122,7 @@ bool AttributesFiller::FillInReaderAttr(const std::string& channel_name,
         break;
     }
 
+    return true;
 }
 
 

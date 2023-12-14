@@ -11,6 +11,7 @@ namespace hnu    {
 namespace cmw   {
 namespace transport {
 
+//eprosima::fastrtps::rtps::ReaderListener 是一个异步的线程用于监控 Cache中是否有数据
 class Rea_listener : public eprosima::fastrtps::rtps::ReaderListener
 {
 public:

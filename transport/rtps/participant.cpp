@@ -30,6 +30,7 @@ Participant::Participant(const std::string& name, int send_port,
 
 Participant::~Participant() {}
 
+
 //移除具体的fastrtps_participant
 void Participant::Shutdown() {
   if (shutdown_.exchange(true)) {
@@ -59,7 +60,7 @@ eprosima::fastrtps::rtps::RTPSParticipant*  Participant::fastrtps_participant() 
   return fastrtps_participant_;
 }
 
-void CreateFastRtpsParticipant(
+void Participant::CreateFastRtpsParticipant(
       const std::string& name, int send_port,
       eprosima::fastrtps::rtps::RTPSParticipantListener* listener){
 
@@ -96,6 +97,9 @@ void CreateFastRtpsParticipant(
       fastrtps_participant_ = RTPSDomain::createParticipant(domain_id,PParam,listener);
 
 }
+
+
+
 
 }
 }
