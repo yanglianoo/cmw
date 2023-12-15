@@ -17,19 +17,15 @@ namespace hnu    {
 namespace cmw   {
 namespace transport {
 
-class RtpsWriterAttributes{
+struct RtpsWriterAttributes{
 /* Tocpic 的配置*/
-public:
-    RtpsWriterAttributes();
     HistoryAttributes hatt;
     WriterAttributes watt;
     WriterQos Wqos;
     TopicAttributes Tatt;
 };
 
-class RtpsReaderAttributes{
-public:
-  RtpsReaderAttributes();
+struct RtpsReaderAttributes{
   HistoryAttributes hatt;
   ReaderAttributes ratt;
   ReaderQos Rqos;

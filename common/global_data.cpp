@@ -6,9 +6,13 @@
 #include <cstdlib>
 #include <netdb.h>
 #include <cmw/common/file.h>
+#include <cmw/common/util.h>
 namespace hnu {
 namespace cmw {
 namespace common {
+
+
+AtomicHashMap<uint64_t, std::string, 256> GlobalData::channel_id_map_;
 
 namespace{
 //返回当前执行的进程的路径
@@ -45,6 +49,7 @@ GlobalData::GlobalData() {
 void GlobalData::InitHostInfo() {
     char host_name[1024];
     gethostname(host_name , sizeof(host_name));
+    host_name_ = host_name;
 
     // 使用本地回环ip地址
     host_ip_ = "127.0.0.1";
@@ -95,8 +100,6 @@ void GlobalData::InitHostInfo() {
     //free 掉链表
     freeifaddrs(ifaddr);
 
-    std::cout<<"host ip: " << host_ip_ << std::endl;
-
 }
 
 GlobalData::~GlobalData() {}
@@ -110,7 +113,23 @@ const std::string& GlobalData::ProcessGroup() const { return process_group_; }
 const std::string& GlobalData::HostIp() const { return host_ip_; }
 const std::string& GlobalData::HostName() const { return host_name_; }
 
-std::string GlobalData::GetChannelById(uint64_t id)
+
+uint64_t GlobalData::RegisterChannel(const std::string& channel) {
+  auto id = Hash(channel);
+  while (channel_id_map_.Has(id)) {
+    std::string* name = nullptr;
+    channel_id_map_.Get(id, &name);
+    if (channel == *name) {
+      break;
+    }
+    ++id;
+    std::cout << "Channel name hash collision: " << channel << " <=> " << *name;
+  }
+  channel_id_map_.Set(id, channel);
+  return id;
+}
+
+std::string  GlobalData::GetChannelById(uint64_t id)
 {
     std::string* channel = nullptr;
     if(channel_id_map_.Get(id, &channel))

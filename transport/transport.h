@@ -7,6 +7,7 @@
 #include <cmw/config/RoleAttributes.h>
 #include <cmw/transport/transmitter/transmitter.h>
 #include <cmw/transport/transmitter/rtps_transmitter.h>
+
 namespace hnu    {
 namespace cmw   {
 namespace transport {

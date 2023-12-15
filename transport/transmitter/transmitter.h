@@ -13,7 +13,7 @@ namespace hnu    {
 namespace cmw   {
 namespace transport {
 
-
+using namespace event;
 template <typename M>
 class Transmitter: public Endpoint
 {
@@ -63,8 +63,8 @@ template <typename M>
 bool Transmitter<M>::Transmit(const MessagePtr& msg){
 
     msg_info_.set_seq_num(NextSeqNum());
-    event::PerfEventCache::Instance()->AddTransportEvent(
-        event::TransPerf::TRANSMIT_BEGIN, attr_.channel_id() ,msg_info_.seq_num_());
+
+    PerfEventCache::Instance()->AddTransportEvent(TransPerf::TRANSMIT_BEGIN, attr_.channel_id ,msg_info_.seq_num());
     
     return Transmit(msg, msg_info_);
 
@@ -82,7 +82,7 @@ void Transmitter<M>::Disable(const RoleAttributes& opposite_attr) {
   (void)opposite_attr;
   Disable();
 }
-
+ 
 
 }
 }

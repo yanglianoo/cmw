@@ -3,12 +3,13 @@
 
 #include <cmw/base/atmoic_hash_map.h>
 #include <cmw/common/macros.h>
+#include <cmw/base/atomic_rw_lock.h>
 #include <string>
 namespace hnu {
 namespace cmw {
 namespace common {
 
-
+using ::hnu::cmw::base::AtomicHashMap;
 
 class GlobalData {
  public:
@@ -22,6 +23,8 @@ class GlobalData {
   const std::string& HostName() const;
 
   static std::string GetChannelById(uint64_t id);
+  //根据传入的channel_name 向 channel_id_map_ 中注册id 
+  static uint64_t RegisterChannel(const std::string& channel);
 
   private:
     void InitHostInfo();
@@ -41,7 +44,7 @@ class GlobalData {
     std::string sched_name_ = "HNU_CMW_DEFAULT";  
 
     //
-    static base::AtomicHashMap<uint64_t, std::string, 256> channel_id_map_;   //全局 channel_id_map_ 表
+    static AtomicHashMap<uint64_t, std::string, 256> channel_id_map_;   //全局 channel_id_map_ 表
 
 
     //GlobalData为全局单例

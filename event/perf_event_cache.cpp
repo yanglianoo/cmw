@@ -20,7 +20,20 @@ PerfEventCache::PerfEventCache(){
 //析构时会去调用Shutdown()函数
 PerfEventCache::~PerfEventCache() { Shutdown(); }
 
+void PerfEventCache::Shutdown(){
+    if(!enable_){
+        return;
+    }
 
+    shutdown_ = true;
+    event_queue_.BreakAllWait();
+    if(io_thread_.joinable()){
+        io_thread_.join();
+    }
+
+    of_.flush();
+    of_.close();
+}
 
 void PerfEventCache::AddTransportEvent(const TransPerf event_id,
                                        const uint64_t channel_id,
@@ -43,6 +56,8 @@ void PerfEventCache::AddTransportEvent(const TransPerf event_id,
     event_queue_.Enqueue(e);
                           
 }
+
+
 void PerfEventCache::Run(){
     
     EventBasePtr event;

@@ -17,7 +17,7 @@ namespace event {
 class PerfEventCache
 {
 
-    public:
+public:
         using EventBasePtr = std::shared_ptr<EventBase>;
         ~PerfEventCache();
     void AddTransportEvent(const TransPerf event_id, const uint64_t channel_id,
@@ -28,7 +28,7 @@ class PerfEventCache
     void Shutdown();
 
 
-    private:
+private:
         void Start();
         void Run();
 

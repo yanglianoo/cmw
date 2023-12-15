@@ -68,7 +68,7 @@ void RtpsTransmitter<M>::Enable(){
 
 
     AttributesFiller::FillInWriterAttr(
-        this->attr_.channle_name, this->attr_.qos_profile,&writer_attr);
+        this->attr_.channel_name, this->attr_.qos_profile,&writer_attr);
     
     //创建rtps writer history
     mp_history = new WriterHistory(writer_attr.hatt);
@@ -100,18 +100,20 @@ bool RtpsTransmitter<M>::Transmit(const MessagePtr& msg,
   return Transmit(*msg, msg_info);
 }
 
+static int a ;
 template <typename M>
 bool RtpsTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info) {
   if (!this->enabled_) {
     std::cout << "not enable." << std::endl;
     return false;
   }
-  
+
   //发送数据
   CacheChange_t* ch = rtps_writer->new_change([]() -> uint32_t
                         {
                           return 255;
                         }, ALIVE);
+
 
   eprosima::fastrtps::rtps::WriteParams wparams;
   char* ptr = reinterpret_cast<char*>(&wparams.related_sample_identity().writer_guid());
@@ -122,18 +124,27 @@ bool RtpsTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info) {
   wparams.related_sample_identity().sequence_number().high = (int32_t)((msg_info.seq_num() & 0xFFFFFFFF00000000) >> 32);
   wparams.related_sample_identity().sequence_number().low = (int32_t)(msg_info.seq_num() & 0xFFFFFFFF);
 
+  std::string str = "hello cmw";
+  //数据装载 测试用
+  ch->serializedPayload.length = str.size();
 
-  //数据装载 暂未实现
-  // ch->serializedPayload.length = 
-  // ch->
-
+  std::memcpy((char*)ch->serializedPayload.data , str.data(), str.size());
   //发送数据
-  mp_history->add_change(ch,wparams);
 
+  bool flag = mp_history->add_change(ch,wparams);
+
+  //这里不知道是不是fastrtps的bug，需要去判断writerhistory是否满了，如果满了需要清空一段
+  if(!flag)
+  {
+    rtps_writer->remove_older_changes(20);
+    mp_history->add_change(ch,wparams);
+  }
   if(participant_->is_shutdown())
   {
     return false;
   }
+
+  return true;
 
 }
 

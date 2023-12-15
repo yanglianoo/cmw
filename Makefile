@@ -2,7 +2,7 @@
 CC = g++
 
 #编译选项
-CFLAGS = -fPIC -shared -std=c++11
+CFLAGS = -fPIC -shared -std=c++11 
 $(warning CFLAGS is $(CFLAGS))
 
 #头文件路径
@@ -23,10 +23,15 @@ $(warning OBJS is ${OBJS})
 ThirdPartyLibPath := /home/timer/Fast-DDS/install/lib
 
 #第三方动态库
-ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3
+ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3 
+ThirdPartyLib += -lpthread
+ThirdPartyLib += -luuid
 
-.PHONY:libcmw.so
-libcmw.so: $(SRCS)
-	$(CC) $(INCLUDE) -o $@ $^ $(CFLAGS)  -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+# .PHONY:libcmw.so
+# libcmw.so: $(SRCS)
+# 	$(CC) $(INCLUDE) -o $@ $^ $(CFLAGS)  -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
+.PHONY:test
+test: $(SRCS)
+	$(CC) $(INCLUDE) -o $@ $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 

@@ -64,7 +64,7 @@ void Participant::CreateFastRtpsParticipant(
       const std::string& name, int send_port,
       eprosima::fastrtps::rtps::RTPSParticipantListener* listener){
 
-      uint32_t domain_id = 80;  //默认的domain_id为80
+      uint32_t domain_id = 0;  //默认的domain_id为80
       // cyberrt在创建RtpsParticipant时的配置是通过配置文件传进来的，我这里就按照默认设置了，后续再拓展
      
       // 默认是udp
@@ -82,7 +82,7 @@ void Participant::CreateFastRtpsParticipant(
       loc.kind = LOCATOR_KIND_UDPv4;
 
       // IP地址设置需要配置
-      IPLocator::setIPv4(loc,"192.168.0.1");
+      IPLocator::setIPv4(loc,"127.0.0.1");
 
       //单播配置
       PParam.defaultUnicastLocatorList.push_back(loc);
