@@ -32,6 +32,7 @@ public:
     //返回在构造函数中创建的participant_
     ParticipantPtr participant() const { return participant_; }
 private:
+    //构造函数会调用，来创建一个participant
     void CreateParticipant();
     ParticipantPtr participant_ = nullptr;
     std::atomic<bool> is_shutdown_ = {false};
@@ -40,7 +41,7 @@ private:
 };
 
 
-
+//现在暂时只支持RtpsTransmitter
 template <typename M>
 auto Transport::CreateTransmitter(const RoleAttributes& attr) ->
         typename std::shared_ptr<Transmitter<M>>

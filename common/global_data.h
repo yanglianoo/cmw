@@ -43,7 +43,7 @@ class GlobalData {
     // sched policy info  暂时不支持调度
     std::string sched_name_ = "HNU_CMW_DEFAULT";  
 
-    //
+    //在创建新的channel时会注册进此全局map
     static AtomicHashMap<uint64_t, std::string, 256> channel_id_map_;   //全局 channel_id_map_ 表
 
 

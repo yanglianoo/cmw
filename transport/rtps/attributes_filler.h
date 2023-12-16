@@ -18,7 +18,6 @@ namespace cmw   {
 namespace transport {
 
 struct RtpsWriterAttributes{
-/* Tocpic 的配置*/
     HistoryAttributes hatt;
     WriterAttributes watt;
     WriterQos Wqos;

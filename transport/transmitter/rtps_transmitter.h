@@ -64,9 +64,10 @@ void RtpsTransmitter<M>::Enable(){
         return;
     }
 
+    // 创建 RtpsWriter 的配置信息实例
     RtpsWriterAttributes writer_attr;
 
-
+    // 填充 RtpsWriter 的配置信息
     AttributesFiller::FillInWriterAttr(
         this->attr_.channel_name, this->attr_.qos_profile,&writer_attr);
     
