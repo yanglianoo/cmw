@@ -1,3 +1,11 @@
+/**
+ * @File Name: signal.h
+ * @brief  信号槽机制
+ * @Author : Timer email:330070781@qq.com
+ * @Version : 1.0
+ * @Creat Date : 2023-12-17
+ * 
+ */
 #ifndef CMW_BASE_SIGNAL_H_
 #define CMW_BASE_SIGNAL_H_
 
@@ -18,7 +26,9 @@ class Slot;
 template <typename... Args>
 class Connection;
 
-/*被观察者*/
+/*被观察者
+  SlotList成员，记录了关联在该信号下的所有槽
+*/
 template <typename... Args>
 class Signal {
  public:
@@ -30,6 +40,8 @@ class Signal {
   Signal() {}
   virtual ~Signal() { DisconnectAllSlots(); }
 
+  //重载了()操作符，也就是说当像这样调用时signal(msg, msg_info)，
+  //就会对该信号对应的所有槽（所有关联的回调函数）进行一次调用，这其实就是通知所有监听该信号的回调函数。
   void operator()(Args... args) {
     SlotList local;
     {
@@ -48,6 +60,7 @@ class Signal {
     ClearDisconnectedSlots();
   }
 
+  //为某个回调函数创建一个Slot共享指针，然后加入到自己的槽列表并返回一个Connection关联实例
   ConnectionType Connect(const Callback& cb) {
     auto slot = std::make_shared<Slot<Args...>>(cb);
     {
@@ -58,6 +71,7 @@ class Signal {
     return ConnectionType(slot, this);
   }
 
+  //接收一个Connection参数，从槽列表中找到该槽，然后将槽的标记置为false并从列表中删除。
   bool Disconnect(const ConnectionType& conn) {
     bool find = false;
     {
@@ -100,6 +114,12 @@ class Signal {
   std::mutex mutex_;
 };
 
+
+/**
+ * 保存了一个信号的指针一个槽的指针，
+ * 一个Connection实例就代表了一条关联关系。
+ * 通过Slot的标记位显示是否处于关联状态。
+*/
 template <typename... Args>
 class Connection {
  public:
@@ -148,7 +168,11 @@ class Connection {
   SignalPtr signal_;
 };
 
-/*观察者*/
+/*观察者:
+  保存了一个回调函数std::function<void(Args...)> cb_和一个标记bool connected_，
+  提供一个Disconnect函数用来将标记置为false。
+  重载了()操作符，当被调用时就会去运行cb_函数。
+*/
 template <typename... Args>
 class Slot {
  public:
