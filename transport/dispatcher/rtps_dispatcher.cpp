@@ -45,9 +45,9 @@ void RtpsDispatcher::AddReader(const RoleAttributes& self_attr) {
     auto& qos = self_attr.qos_profile;
     AttributesFiller::FillInReaderAttr(self_attr.channel_name , qos , &reader_attr);
     //创建reader的回调函数
-    new_reader.reader_listener = std::make_shared<Realistener>(
+    new_reader.reader_listener = std::make_shared<ReaListener>(
         std::bind(&RtpsDispatcher::OnMessage, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3));
+                std::placeholders::_2, std::placeholders::_3),self_attr.channel_name);
     //创建rtps reader history
     new_reader.mp_history = new ReaderHistory(reader_attr.hatt);
     //创建rtps reader

@@ -11,7 +11,7 @@ INCLUDE += -I/home/timer/Fast-DDS
 INCLUDE += -I.
 
 #找出当前目录下，所有的源文件
-SRCS := $(shell find ./* -type f | grep '\.cpp')
+SRCS := $(shell find ./* -type f | grep '\.cpp' | grep -v './writer.cpp' | grep -v './reader.cpp')
 $(warning SRCS is ${SRCS})
 
 #确定cpp源文件对应的目标文件
@@ -31,7 +31,10 @@ ThirdPartyLib += -luuid
 # libcmw.so: $(SRCS)
 # 	$(CC) $(INCLUDE) -o $@ $^ $(CFLAGS)  -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
-.PHONY:test
-test: $(SRCS)
+.PHONY:writer
+writer: $(SRCS) writer.cpp
 	$(CC) $(INCLUDE) -o $@ $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
+.PHONY:reader 
+reader: $(SRCS) reader.cpp
+	$(CC) $(INCLUDE) -o $@ $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)

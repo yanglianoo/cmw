@@ -12,7 +12,7 @@ namespace cmw   {
 namespace transport {
 
 
-class Realistener;
+class ReaListener;
 using RealistenerPtr = std::shared_ptr<ReaListener>;
 
 //eprosima::fastrtps::rtps::ReaderListener 是一个异步的线程用于监控 Cache中是否有数据
@@ -20,10 +20,11 @@ class ReaListener : public eprosima::fastrtps::rtps::ReaderListener
 {
 public:
         using NewMsgCallback = std::function<void(
+            uint64_t channel_id,
             const std::shared_ptr<std::string>& msg_str, 
             const MessageInfo& msg_info)>;
 
-        explicit ReaListener(const NewMsgCallback& callback);
+        explicit ReaListener(const NewMsgCallback& callback, const std::string& channel_name);
         virtual ~ReaListener();
         
         void onNewCacheChangeAdded(
@@ -41,6 +42,7 @@ public:
         }
 private:
     uint32_t n_matched;
+    std::string channel_name_;
     // fast-rtps reader的listener的回调函数，会在onNewCacheChangeAdded 中调用
     NewMsgCallback callback_;
     MessageInfo msg_info_;

@@ -3,16 +3,16 @@
 #include <fastrtps/rtps/rtps_fwd.h>
 #include <fastrtps/rtps/common/SequenceNumber.h>
 #include <memory.h>
-
+#include <cmw/common/util.h>
 using GUID_t = eprosima::fastrtps::rtps::GUID_t;
 
 namespace hnu    {
 namespace cmw   {
 namespace transport {
 
-ReaListener::ReaListener( const NewMsgCallback& callback)
-         : callback_(callback) {}
-
+ReaListener::ReaListener( const NewMsgCallback& callback , const std::string& channel_name)
+         : callback_(callback) , channel_name_(channel_name){}
+ 
 ReaListener::~ReaListener() {}
 
 
@@ -22,6 +22,9 @@ void ReaListener::onNewCacheChangeAdded(
 {
 
     std::lock_guard<std::mutex> lock(mutex_);
+    
+    //由于rtps的writer/reader层拿不到 topic_name，因此需要在构造Listener时传入topic_name
+    auto channel_id = common::Hash(channel_name_);
 
     //GUID_t是rtps中实体的标识符,每个实体都是唯一的
     char* ptr = reinterpret_cast<char*>(const_cast<GUID_t*>
@@ -43,8 +46,11 @@ void ReaListener::onNewCacheChangeAdded(
     std::shared_ptr<std::string> msg_str = 
         std::make_shared<std::string>((char*)change->serializedPayload.data,change->serializedPayload.length);
 
-    callback_(msg_str, msg_info_);
+    
+    callback_(channel_id,msg_str, msg_info_);
 }
+
+
 }
 }
 }

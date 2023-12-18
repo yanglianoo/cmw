@@ -3,6 +3,7 @@
 
 
 #include <cmw/transport/receiver/receiver.h>
+#include <cmw/transport/dispatcher/rtps_dispatcher.h>
 namespace hnu    {
 namespace cmw   {
 namespace transport {
@@ -19,6 +20,8 @@ public:
     void Enable(const RoleAttributes& opposite_attr) override;
     void Disable(const RoleAttributes& opposite_attr) override;
     
+private:
+    RtpsDispatcher dispatcher_;
 };
 
 }

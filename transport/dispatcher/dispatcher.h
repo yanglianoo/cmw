@@ -73,7 +73,7 @@ void Dispatcher::AddListener(const RoleAttributes& self_attr,
     if(is_shutdown_.load()){
         return ;
     }
-    uint64_t channel_id = self_attr.channel_id();
+    uint64_t channel_id = self_attr.channel_id;
     std::shared_ptr<ListenerHandler<MessageT>> handler;
     ListenerHandlerBasePtr* handler_base = nullptr;
     
@@ -82,18 +82,18 @@ void Dispatcher::AddListener(const RoleAttributes& self_attr,
             std::dynamic_pointer_cast<ListenerHandler<MessageT>>(*handler_base);
             if (handler == nullptr) {
       std::cout << "please ensure that readers with the same channel["
-             << self_attr.channel_name()
+             << self_attr.channel_name
              << "] in the same process have the same message type"<< std::endl;
       return;
              }
     } else{
         std::cout << "new reader for channel:"
-           << GlobalData::GetChannelById(channel_id);
+           << GlobalData::GetChannelById(channel_id) << std::endl;
         handler.reset(new ListenerHandler<MessageT>());
         msg_listeners_.Set(channel_id, handler);
     }
 
-    handler->Connect(self_attr.id(), listener);
+    handler->Connect(self_attr.id, listener);
 
 }
 

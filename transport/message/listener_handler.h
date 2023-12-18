@@ -31,8 +31,8 @@ public:
     virtual void Disconnect(uint64_t self_id) = 0;
     virtual void Disconnect(uint64_t slef_id, uint64_t oppo_id) = 0;
    // inline bool IsRawMessage() const { return is_raw_message_; }
-    virtual void RunFromString(const std::string& str,
-                               const MessageInfo& msg_info) = 0;
+    // virtual void RunFromString(const std::string& str,
+    //                            const MessageInfo& msg_info) = 0;
 protected:
     bool is_raw_message_ = false;
 };

@@ -25,6 +25,7 @@ void Transport::Shutdown()
     participant_ = nullptr;
 }
 
+//创建Participant，此函数会在Transport构造函数中调用
 void Transport::CreateParticipant(){
 
     std::string participant_name = 
