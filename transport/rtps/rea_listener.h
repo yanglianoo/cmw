@@ -11,16 +11,20 @@ namespace hnu    {
 namespace cmw   {
 namespace transport {
 
+
+class Realistener;
+using RealistenerPtr = std::shared_ptr<ReaListener>;
+
 //eprosima::fastrtps::rtps::ReaderListener 是一个异步的线程用于监控 Cache中是否有数据
-class Rea_listener : public eprosima::fastrtps::rtps::ReaderListener
+class ReaListener : public eprosima::fastrtps::rtps::ReaderListener
 {
 public:
         using NewMsgCallback = std::function<void(
             const std::shared_ptr<std::string>& msg_str, 
             const MessageInfo& msg_info)>;
 
-        explicit Rea_listener(const NewMsgCallback& callback);
-        virtual ~Rea_listener();
+        explicit ReaListener(const NewMsgCallback& callback);
+        virtual ~ReaListener();
         
         void onNewCacheChangeAdded(
                 eprosima::fastrtps::rtps::RTPSReader* reader,

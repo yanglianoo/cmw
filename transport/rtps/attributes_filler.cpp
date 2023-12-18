@@ -76,7 +76,7 @@ bool AttributesFiller::FillInWriterAttr(const std::string& channel_name,
 
 bool AttributesFiller::FillInReaderAttr(const std::string& channel_name,
                                         const config::QosProfile& qos,
-                                        RtpsWriterAttributes* reader_attr)
+                                        RtpsReaderAttributes* reader_attr)
 {
 
     reader_attr->Tatt.topicName = channel_name;
@@ -85,15 +85,15 @@ bool AttributesFiller::FillInReaderAttr(const std::string& channel_name,
 
     reader_attr->hatt.payloadMaxSize = 255;
 
-    reader_attr->watt.endpoint.reliabilityKind = BEST_EFFORT;
+    reader_attr->ratt.endpoint.reliabilityKind = BEST_EFFORT;
     /* 配置reader 的qos*/
     switch (qos.durability)
     {
     case config::QosHistoryPolicy::HISTORY_KEEP_LAST:
-        reader_attr->Wqos.m_durability.kind = eprosima::fastrtps::TRANSIENT_LOCAL_DURABILITY_QOS;;
+        reader_attr->Rqos.m_durability.kind = eprosima::fastrtps::TRANSIENT_LOCAL_DURABILITY_QOS;;
         break;
     case config::QosDurabilityPolicy::DURABILITY_VOLATILE:
-        reader_attr->Wqos.m_durability.kind = eprosima::fastrtps::VOLATILE_DURABILITY_QOS;
+        reader_attr->Rqos.m_durability.kind = eprosima::fastrtps::VOLATILE_DURABILITY_QOS;
     default:
         break;
     }
@@ -101,10 +101,10 @@ bool AttributesFiller::FillInReaderAttr(const std::string& channel_name,
     switch (qos.reliability)
     {
     case config::QosReliabilityPolicy::RELIABILITY_BEST_EFFORT:
-        reader_attr->Wqos.m_reliability.kind = eprosima::fastrtps::BEST_EFFORT_RELIABILITY_QOS;
+        reader_attr->Rqos.m_reliability.kind = eprosima::fastrtps::BEST_EFFORT_RELIABILITY_QOS;
         break;
     case config::QosReliabilityPolicy::RELIABILITY_RELIABLE:
-        reader_attr->Wqos.m_reliability.kind = eprosima::fastrtps::RELIABLE_RELIABILITY_QOS;
+        reader_attr->Rqos.m_reliability.kind = eprosima::fastrtps::RELIABLE_RELIABILITY_QOS;
     default:
         break;
     }

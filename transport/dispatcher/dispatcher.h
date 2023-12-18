@@ -76,7 +76,7 @@ void Dispatcher::AddListener(const RoleAttributes& self_attr,
     uint64_t channel_id = self_attr.channel_id();
     std::shared_ptr<ListenerHandler<MessageT>> handler;
     ListenerHandlerBasePtr* handler_base = nullptr;
-
+    
     if(msg_listeners_.Get(channel_id, &handler_base)){
         handler = 
             std::dynamic_pointer_cast<ListenerHandler<MessageT>>(*handler_base);

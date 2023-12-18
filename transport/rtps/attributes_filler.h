@@ -44,7 +44,7 @@ class AttributesFiller{
 
   static bool FillInReaderAttr(const std::string& channel_name,
                                const config::QosProfile& qos,
-                               RtpsWriterAttributes* reader_attr);
+                               RtpsReaderAttributes* reader_attr);
 };
 
 }

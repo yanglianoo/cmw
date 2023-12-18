@@ -10,13 +10,13 @@ namespace hnu    {
 namespace cmw   {
 namespace transport {
 
-Rea_listener::Rea_listener( const NewMsgCallback& callback)
+ReaListener::ReaListener( const NewMsgCallback& callback)
          : callback_(callback) {}
 
-Rea_listener::~Rea_listener() {}
+ReaListener::~ReaListener() {}
 
 
-void Rea_listener::onNewCacheChangeAdded(
+void ReaListener::onNewCacheChangeAdded(
                 eprosima::fastrtps::rtps::RTPSReader* reader,
                 const eprosima::fastrtps::rtps::CacheChange_t* const change) 
 {
