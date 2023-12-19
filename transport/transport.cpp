@@ -8,6 +8,8 @@ namespace transport {
 Transport::Transport()
 {
     CreateParticipant();
+    rtps_dispatcher_ = RtpsDispatcher::Instance();
+    rtps_dispatcher_->set_participant(participant_);
 }
 
 Transport::~Transport() { Shutdown(); }

@@ -21,8 +21,8 @@ public:
     Receiver(const RoleAttributes& attr , const MessageListener& msg_listener);
     virtual ~Receiver();
 
-    virtual void Enable();
-    virtual void Disable();
+    virtual void Enable() = 0;
+    virtual void Disable() = 0;
     virtual void Enable(const RoleAttributes& opposite_attr) = 0;
     virtual void Disable(const RoleAttributes& opposite_attr) = 0;
 

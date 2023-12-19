@@ -26,6 +26,8 @@ struct Reader {
     RealistenerPtr reader_listener;
 };
 
+class RtpsDispatcher;
+using RtpsDispatcherPtr = RtpsDispatcher*;
 
 class RtpsDispatcher : public Dispatcher {
 
@@ -43,6 +45,9 @@ public:
                      const RoleAttributes& opposite_attr,
                      const MessageListener<MessageT>& listener);
 
+    void set_participant(const ParticipantPtr& participant) {
+        participant_ = participant;
+  }
 private:
     void OnMessage(uint64_t channel_id,
                    const std::shared_ptr<std::string>& msg_str,

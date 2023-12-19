@@ -2,8 +2,11 @@
 #include <cmw/config/RoleAttributes.h>
 #include <cmw/transport/dispatcher/rtps_dispatcher.h>
 #include <cmw/common/util.h>
+#include <cmw/transport/receiver/receiver.h>
+#include <cmw/transport/transport.h>
 using namespace hnu::cmw::transport;
 using namespace hnu::cmw::common;
+using ReceiverPtr = std::shared_ptr<Receiver<std::string>>;
 int main()
 {
     auto dispatcher = RtpsDispatcher::Instance();
@@ -16,14 +19,13 @@ int main()
     QosProfile qos;
     attr.qos_profile = qos;
     
-    auto recv_msg = std::make_shared<std::string>();
-    dispatcher->AddListener<std::string>(attr,
-                [&recv_msg](const std::shared_ptr<std::string>& msg,
-                             const MessageInfo& msg_info)
-                             {
-                                (void)msg_info;
-                                std::cout<<"rev data" << std::endl;
-                             });
+    auto listener = [](const std::shared_ptr<std::string>& message ,
+                       const MessageInfo&, const RoleAttributes&){
+                        
+                        std::cout << *message << std::endl;
+                       };
+
+    ReceiverPtr rtps =Transport::Instance()->CreateReceiver<std::string>(attr,listener);
     
     printf("Press Enter to stop the Reader.\n");
     std::cin.ignore();
