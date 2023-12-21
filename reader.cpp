@@ -19,13 +19,21 @@ int main()
     QosProfile qos;
     attr.qos_profile = qos;
     
-    auto listener = [](const std::shared_ptr<std::string>& message ,
+    auto listener1 = [](const std::shared_ptr<std::string>& message ,
                        const MessageInfo&, const RoleAttributes&){
                         
-                        std::cout << *message << std::endl;
+                        std::cout << *message << " data1" << std::endl;
+                        
                        };
+    auto listener2 = [](const std::shared_ptr<std::string>& message ,
+                       const MessageInfo&, const RoleAttributes&){
+                        
+                        std::cout << *message << " data2" << std::endl;
+                        
+                       };
+    ReceiverPtr rtps1 =Transport::Instance()->CreateReceiver<std::string>(attr,listener1);
 
-    ReceiverPtr rtps =Transport::Instance()->CreateReceiver<std::string>(attr,listener);
+    ReceiverPtr rtps2 = Transport::Instance()->CreateReceiver<std::string>(attr,listener2);
     
     printf("Press Enter to stop the Reader.\n");
     std::cin.ignore();

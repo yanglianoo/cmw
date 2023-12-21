@@ -153,10 +153,9 @@ void ListenerHandler<MessageT>::Disconnect(uint64_t self_id, uint64_t oppo_id){
 template <typename MessageT>
 void ListenerHandler<MessageT>::Run(const Message& msg,
                                     const MessageInfo& msg_info) {
-    //这句代码好像没什么屌用                                    
+    //执行回调                                 
     signal_(msg, msg_info);
-
-    //根据writer的id去通知监听此信号的槽，执行回调
+    //
     uint64_t oppo_id = msg_info.sender_id().HashValue();    
     ReadLockGuard<AtomicRWLock> lock(rw_lock_);   
     if (signals_.find(oppo_id) == signals_.end()) {
