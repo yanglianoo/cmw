@@ -7,6 +7,7 @@
  * 
  */
 #include <cmw/transport/rtps/attributes_filler.h>
+#include <cmw/transport/qos/qos_profile_conf.h>
 namespace hnu    {
 namespace cmw   {
 namespace transport {
@@ -56,7 +57,7 @@ bool AttributesFiller::FillInWriterAttr(const std::string& channel_name,
         break;
     }
 
-    /*配置 writer 的history*/
+    /*配置 writer topic 的history*/
 
     switch (qos.history)
     {
@@ -68,6 +69,34 @@ bool AttributesFiller::FillInWriterAttr(const std::string& channel_name,
     default:
         break;
     }
+
+    // 在RELIABLE_RELIABILITY_QOS 下需要设置可靠的心跳周期 ,1 fraction = 1/(2^32) seconds
+    if(qos.mps != 0){
+        uint64_t mps = qos.mps;
+        if(mps > 1024){
+            mps = 1024;
+        } else if(mps < 64){
+            mps = 64;
+        }
+        //这里为啥要使用 256 我没想明白
+        uint64_t fractions = (256ull << 32) / mps;
+        uint32_t fraction = fractions & 0xffffffff;
+        int32_t seconds = static_cast<int32_t>(fractions >> 32);
+
+        writer_attr->watt.times.heartbeatPeriod.seconds = seconds;
+        writer_attr->watt.times.heartbeatPeriod.nanosec = fraction;
+
+    }
+
+    if(qos.depth != QosProfileConf::QOS_HISTORY_DEPTH_SYSTEM_DEFAULT){
+        writer_attr->Tatt.historyQos.depth = static_cast<int32_t>(qos.depth);
+    }
+
+    if(writer_attr->Tatt.historyQos.depth < 0){
+        return false;
+    }
+    
+
 
     return true;     
 }
@@ -120,6 +149,15 @@ bool AttributesFiller::FillInReaderAttr(const std::string& channel_name,
         reader_attr->Tatt.historyQos.kind = eprosima::fastrtps::KEEP_ALL_HISTORY_QOS;
     default:
         break;
+    }
+
+
+    if(qos.depth != QosProfileConf::QOS_HISTORY_DEPTH_SYSTEM_DEFAULT){
+        reader_attr->Tatt.historyQos.depth = static_cast<int32_t>(qos.depth);
+    }
+
+    if(reader_attr->Tatt.historyQos.depth < 0){
+        return false;
     }
 
     return true;

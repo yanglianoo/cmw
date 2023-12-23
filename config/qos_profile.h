@@ -27,6 +27,8 @@ enum QosDurabilityPolicy {
 struct QosProfile
 {
   QosHistoryPolicy history = HISTORY_KEEP_LAST;
+  uint32_t depth = 2; //default = 1 
+  uint32_t mps = 3;  // [default = 0];    // messages per second
   QosReliabilityPolicy reliability = RELIABILITY_RELIABLE;
   QosDurabilityPolicy durability = DURABILITY_VOLATILE;
 
