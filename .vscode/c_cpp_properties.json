@@ -3,8 +3,8 @@
         {
             "name": "Linux",
             "includePath": [
-                "/home/timer/Fast-DDS/install/include",
-                "/home/timer/Fast-DDS",
+                "/home/timer/Fast-DDS/install/include",   //这是fastdds的头文件路径
+                "/home/timer/Fast-DDS",                   //这是cmw文件夹的上一级路径
                 "${workspaceRoot}"
             ],
             "defines": []

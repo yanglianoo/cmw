@@ -36,4 +36,21 @@
 
 
 
+#if !defined(RETURN_IF_NULL)
+#define RETURN_IF_NULL(ptr)          \
+  if (ptr == nullptr) {              \
+    std::cout << #ptr << " is nullptr."<< std::endl; \
+    return;                          \
+  }
+#endif
+
+
+#if !defined(RETURN_VAL_IF_NULL)
+#define RETURN_VAL_IF_NULL(ptr, val) \
+  if (ptr == nullptr) {              \
+    std::cout << #ptr << " is nullptr."<< std::endl; \
+    return val;                      \
+  }
+#endif
+
 #endif
