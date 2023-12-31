@@ -56,6 +56,9 @@ protected:
 
     bool IsFromSameProcess(const ChangeMsg& msg);
 
+    void Convert(const RoleAttributes& attr, RoleType role, OperateType opt,
+               ChangeMsg* msg);
+
     std::atomic<bool> is_shutdown_;
     std::atomic<bool> is_discovery_started_;
     int allowed_role_;
@@ -70,7 +73,7 @@ protected:
 
     //fastrtps关于ChangeMsg的回调
     ReaderListener* listener_;
-    //以msg作为信号
+    //以ChangeMsg作为信号
     ChangeSignal signal_;
 };
 

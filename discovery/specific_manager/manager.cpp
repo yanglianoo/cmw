@@ -7,6 +7,7 @@
 #include <cmw/transport/qos/qos_profile_conf.h>
 #include <cmw/transport/rtps/participant.h>
 #include <fastrtps/rtps/reader/RTPSReader.h>
+#include <cmw/base/macros.h>
 namespace hnu {
 namespace cmw {
 namespace discovery{ 
@@ -79,7 +80,13 @@ bool Manager::Join(const RoleAttributes& attr, RoleType role,
     if(is_shutdown_.load()){
         std::cout << "the manager has been shut down." << std::endl;
         return false;
-    }          
+    }    
+
+    //
+    RETURN_VAL_IF(!((1 << role) & allowed_role_), false);
+
+    ChangeMsg msg;
+
 
 }
 
@@ -153,6 +160,10 @@ bool Manager::IsFromSameProcess(const ChangeMsg& msg) {
   return true;
 }
 
+void Manager::Convert(const RoleAttributes& attr, RoleType role, OperateType opt,
+               ChangeMsg* msg){
+
+}
 }
 }
 }

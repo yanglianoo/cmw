@@ -10,7 +10,6 @@ namespace config {
 
 struct RoleAttributes
 {
-public:
     std::string host_name;
     std::string host_ip;
     int32_t process_id;
@@ -21,11 +20,7 @@ public:
     uint64_t id;
 
     std::string node_name;
-    uint64_t node_id = 5;  // hash value of node_name
-    void CopyFrom(const RoleAttributes& other){
-        this->host_name = other.host_name;
-    }
-
+    uint64_t node_id;  // hash value of node_name
 };
 
 
