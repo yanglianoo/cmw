@@ -61,4 +61,12 @@
   }
 #endif
 
+#if !defined(RETURN_IF)
+#define RETURN_IF(condition)           \
+  if (condition) {                     \
+    std::cout << #condition << " is met."<< std::endl;  \
+    return;                            \
+  }
+#endif
+
 #endif

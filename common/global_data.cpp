@@ -13,6 +13,7 @@ namespace common {
 
 //类中静态成员是类的一部分，但是不是类的实例的一部分，因此需要在此定义
 AtomicHashMap<uint64_t, std::string, 256> GlobalData::channel_id_map_;
+AtomicHashMap<uint64_t, std::string, 512> node_id_map_;
 
 namespace{
 //返回当前执行的进程的路径
@@ -127,6 +128,27 @@ uint64_t GlobalData::RegisterChannel(const std::string& channel) {
   }
   channel_id_map_.Set(id, channel);
   return id;
+}
+
+uint64_t GlobalData::RegisterNode(const std::string& node_name){
+
+    //拿到node_name的哈希值
+    auto id  = Hash(node_name);
+    //
+    while (node_id_map_.Has(id))
+    {
+       std::string* name = nullptr;
+       node_id_map_.Get(id, &name);
+       if(node_name == *name){
+        break;
+       }
+       ++id;
+       //说明有其他node_name和当前的哈希值相等，出现了哈希碰撞
+       std::cout << " Node name hash collision: " << node_name << " <=> " << *name << std::endl;
+    }
+    //确保node_name是一个唯一的id
+    node_id_map_.Set(id , node_name);
+    return id;
 }
 
 std::string  GlobalData::GetChannelById(uint64_t id)

@@ -8,6 +8,8 @@
 #include <cmw/transport/rtps/participant.h>
 #include <fastrtps/rtps/reader/RTPSReader.h>
 #include <cmw/base/macros.h>
+#include <cmw/time/time.h>
+
 namespace hnu {
 namespace cmw {
 namespace discovery{ 
@@ -33,9 +35,12 @@ bool Manager::StartDiscovery(RtpsParticipant* participant){
     if (participant == nullptr) {
         return false;
     }
+    //将is_discovery_started_标志位设置为true
     if (is_discovery_started_.exchange(true)) {
         return true;
     }
+
+    //创建 rtpsWriter 和 rtspReader
     if(!CreateWriter(participant) || !CreateReader(participant)){
         std::cout << "create writer or reader failed." << std::endl;
         StopDiscovery();
@@ -44,6 +49,7 @@ bool Manager::StartDiscovery(RtpsParticipant* participant){
     return true;
 }
 
+//终止服务发现机制
 void Manager::StopDiscovery(){
     if (!is_discovery_started_.exchange(false)) {
         return;
@@ -52,11 +58,13 @@ void Manager::StopDiscovery(){
     {
         std::lock_guard<std::mutex> lg(lock_);
         if(writer_ != nullptr){
+            //从rtpsRTPSDomain 中移除writer
             eprosima::fastrtps::rtps::RTPSDomain::removeRTPSWriter(writer_);
         }
     }
 
     if(reader_ != nullptr){
+        //从rtpsRTPSDomain 中移除reader
         eprosima::fastrtps::rtps::RTPSDomain::removeRTPSReader(reader_);
     }
 
@@ -84,8 +92,17 @@ bool Manager::Join(const RoleAttributes& attr, RoleType role,
 
     //
     RETURN_VAL_IF(!((1 << role) & allowed_role_), false);
-
+    //创建一个msg
     ChangeMsg msg;
+    //填充msg
+    Convert(attr, role, OperateType::OPT_JOIN, &msg);
+    //
+    Dispose(msg);
+
+    if (need_write) {
+        return Write(msg);
+    }
+    return true;
 
 
 }
@@ -95,18 +112,30 @@ bool Manager::Leave(const RoleAttributes& attr, RoleType role){
         std::cout << "the manager has been shut down." << std::endl;
         return false;
     }   
+    RETURN_VAL_IF(!((1 << role) & allowed_role_), false);
+    RETURN_VAL_IF(!Check(attr), false);
+    ChangeMsg msg;
+    Convert(attr, role, OperateType::OPT_LEAVE, &msg);
+    Dispose(msg);
+    if (NeedPublish(msg)) {
+        return Write(msg);
+    }
+  return true;
 }
 
+//添加回调函数，绑定信号槽
 Manager::ChangeConnection Manager::AddChangeListener(const ChangeFunc& func){
    return  signal_.Connect(func);
 }
 
+//移除回调函数，
 void Manager::RemoveChangeListener(const ChangeConnection& conn) {
   auto local_conn = conn;
   //信号内部会删除此槽函数
   local_conn.Disconnect();
 }
 
+//创建rtspReader
 bool Manager::CreateReader(RtpsParticipant* participant){
 
     RtpsReaderAttributes reader_attr;
@@ -124,6 +153,7 @@ bool Manager::CreateReader(RtpsParticipant* participant){
     return reg;
 }
 
+//创建rtpsWriter
 bool Manager::CreateWriter(RtpsParticipant* participant){
     // 创建 RtpsWriter 的配置信息实例
     RtpsWriterAttributes writer_attr; 
@@ -140,6 +170,12 @@ bool Manager::CreateWriter(RtpsParticipant* participant){
     return reg;
 }
 
+bool Manager::NeedPublish(const ChangeMsg& msg) const {
+  (void)msg;
+  return true;
+}
+
+
 void Manager::OnRemoteChange(const std::string& str_msg){
     if(is_shutdown_.load()){
         std::cout <<  "the manager has been shut down." << std::endl;
@@ -147,7 +183,18 @@ void Manager::OnRemoteChange(const std::string& str_msg){
     }
     ChangeMsg msg;
 
+    //需要将str_msg 反序列化成ChangeMsg类型的msg
 
+    //
+    if(IsFromSameProcess(msg)){
+        return;
+    }
+
+
+    RETURN_IF(!Check(msg.role_attr));
+
+    Dispose(msg);
+    
 
 }
 
@@ -160,10 +207,39 @@ bool Manager::IsFromSameProcess(const ChangeMsg& msg) {
   return true;
 }
 
+//填充msg
 void Manager::Convert(const RoleAttributes& attr, RoleType role, OperateType opt,
                ChangeMsg* msg){
+    
+    msg->timestamp = cmw::Time::Now().ToNanosecond();  //时间戳为ns
+    msg->change_type = change_type_;
+    msg->operate_type = opt;
+    msg->role_type = role;
 
+    msg->role_attr = attr;
+
+    if(msg->role_attr.host_name.empty()){
+        msg->role_attr.host_name = host_name_;
+    }
+    if(!msg->role_attr.process_id){
+        msg->role_attr.process_id = process_id_;
+    }       
 }
+
+//通知执行回调
+void Manager::Notify(const ChangeMsg& msg) { signal_(msg); }
+
+//判断是否是同一进程
+bool Manager::IsFromSameProcess(const ChangeMsg& msg){
+    auto& host_name = msg.role_attr.host_name;
+    int process_id = msg.role_attr.process_id;
+
+    if (process_id != process_id_ || host_name != host_name_) {
+        return false;
+    }
+    return true;
+}
+
 }
 }
 }

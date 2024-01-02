@@ -1,6 +1,5 @@
 #include <cmw/time/rate.h>
 
-
 namespace hnu {
 namespace cmw {
 

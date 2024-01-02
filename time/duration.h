@@ -6,6 +6,7 @@
 namespace hnu {
 namespace cmw {
 
+//代表一段时间的类
 class Duration {
  public:
   Duration() = default;

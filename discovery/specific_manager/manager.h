@@ -14,6 +14,7 @@
 #include <fastrtps/rtps/writer/RTPSWriter.h>
 #include <fastrtps/rtps/rtps_fwd.h>
 #include <fastrtps/rtps/RTPSDomain.h>
+
 namespace hnu {
 namespace cmw {
 namespace discovery{ 
@@ -43,25 +44,35 @@ public:
     ChangeConnection AddChangeListener(const ChangeFunc& func);
     void RemoveChangeListener(const ChangeConnection& conn);
     
+    virtual void OnTopoModuleLeave(const std::string& host_name,
+                                 int process_id) = 0;
 protected:
 
     bool CreateWriter(RtpsParticipant* participant);
     bool CreateReader(RtpsParticipant* participant);
 
-    void OnRemoteChange(const std::string& msg_str);
+    
 
+    //两个纯虚函数，子类必须实现
     virtual bool Check(const RoleAttributes& attr) = 0;
+    virtual void Dispose(const ChangeMsg& msg) = 0;
+    virtual bool NeedPublish(const ChangeMsg& msg) const;
 
+    
     void Notify(const ChangeMsg& msg);
-
+    bool Write(const ChangeMsg& msg);
+    void OnRemoteChange(const std::string& msg_str);
     bool IsFromSameProcess(const ChangeMsg& msg);
 
+    //填充msg
     void Convert(const RoleAttributes& attr, RoleType role, OperateType opt,
                ChangeMsg* msg);
 
     std::atomic<bool> is_shutdown_;
     std::atomic<bool> is_discovery_started_;
+
     int allowed_role_;
+
     ChangeType change_type_;
     std::string host_name_;
     int process_id_;

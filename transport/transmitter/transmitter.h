@@ -41,7 +41,7 @@ public:
 protected:
     //帧号
     uint64_t seq_num_;
-    //帧头的数据
+    //帧附加数据
     MessageInfo msg_info_;
 };
 

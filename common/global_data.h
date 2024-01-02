@@ -26,6 +26,8 @@ class GlobalData {
   //根据传入的channel_name 向 channel_id_map_ 中注册id 
   static uint64_t RegisterChannel(const std::string& channel);
 
+  static uint64_t RegisterNode(const std::string& node_name);
+
   private:
     void InitHostInfo();
     // 运行机器的配置信息
@@ -45,6 +47,7 @@ class GlobalData {
 
     //在创建新的channel时会注册进此全局map
     static AtomicHashMap<uint64_t, std::string, 256> channel_id_map_;   //全局 channel_id_map_ 表
+    static AtomicHashMap<uint64_t, std::string, 512> node_id_map_;
 
 
     //GlobalData为全局单例

@@ -8,6 +8,7 @@ namespace hnu    {
 namespace cmw   {
 namespace config {
 
+//
 enum ChangeType{
   CHANGE_NODE = 1,
   CHANGE_CHANNEL = 2,
@@ -15,11 +16,13 @@ enum ChangeType{
   CHANGE_PARTICIPANT = 4,
 };
 
+//一个角色的动作
 enum OperateType {
   OPT_JOIN = 1,
   OPT_LEAVE = 2,
 };
 
+//通信平面中角色的类型
 enum RoleType {
   ROLE_NODE = 1,
   ROLE_WRITER = 2,
@@ -31,7 +34,7 @@ enum RoleType {
 
 struct ChangeMsg
 {
-    uint64_t timestamp;
+    uint64_t timestamp;  
     ChangeType change_type ;
     OperateType operate_type;
     RoleType role_type;
