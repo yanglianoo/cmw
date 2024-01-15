@@ -13,7 +13,7 @@ namespace common {
 
 //类中静态成员是类的一部分，但是不是类的实例的一部分，因此需要在此定义
 AtomicHashMap<uint64_t, std::string, 256> GlobalData::channel_id_map_;
-AtomicHashMap<uint64_t, std::string, 512> node_id_map_;
+AtomicHashMap<uint64_t, std::string, 512> GlobalData::node_id_map_;
 
 namespace{
 //返回当前执行的进程的路径

@@ -84,7 +84,7 @@ void Manager::Shutdown(){
 }
 
 bool Manager::Join(const RoleAttributes& attr, RoleType role,
-                  bool need_write = true){
+                  bool need_write ){
     if(is_shutdown_.load()){
         std::cout << "the manager has been shut down." << std::endl;
         return false;
@@ -198,14 +198,6 @@ void Manager::OnRemoteChange(const std::string& str_msg){
 
 }
 
-bool Manager::IsFromSameProcess(const ChangeMsg& msg) {
-    auto& host_name = msg.role_attr.host_name;
-    int process_id = msg.role_attr.process_id;
-    if (process_id != process_id_ || host_name != host_name_) {
-        return false;
-    }
-  return true;
-}
 
 //填充msg
 void Manager::Convert(const RoleAttributes& attr, RoleType role, OperateType opt,
@@ -240,6 +232,11 @@ bool Manager::IsFromSameProcess(const ChangeMsg& msg){
     return true;
 }
 
+
+bool Manager::Write(const ChangeMsg& msg){
+
+  return true;
+}
 }
 }
 }
