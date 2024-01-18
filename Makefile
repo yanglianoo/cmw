@@ -11,7 +11,7 @@ INCLUDE += -I/home/timer/Fast-DDS
 INCLUDE += -I.
 
 #找出当前目录下，所有的源文件
-SRCS := $(shell find ./* -type f | grep '\.cpp' | grep -v './writer.cpp' | grep -v './reader.cpp')
+SRCS := $(shell find ./* -type f | grep '\.cpp' | grep -v './writer.cpp' | grep -v './reader.cpp' | grep -v './test.*\.cpp')
 $(warning SRCS is ${SRCS})
 
 #确定cpp源文件对应的目标文件

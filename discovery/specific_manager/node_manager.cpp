@@ -22,6 +22,7 @@ bool NodeManager::Check(const RoleAttributes& attr){
 }
 
 bool NodeManager::HasNode(const std::string& node_name){
+    //所有的Node都会注册到全局的map中
     uint64_t key = common::GlobalData::RegisterNode(node_name);
     return nodes_.Search(key);
 }
@@ -31,12 +32,14 @@ void NodeManager::GetNodes(RoleAttrVec* nodes){
     nodes_.GetAllRoles(nodes);
 }
 
+
 void NodeManager::Dispose(const ChangeMsg& msg){
     if(msg.operate_type == OperateType::OPT_JOIN){
         DisposeJoin(msg);
     }else{
         DisposeLeave(msg);
     }
+    //
     Notify(msg);
 }
 

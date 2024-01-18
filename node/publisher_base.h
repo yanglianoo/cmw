@@ -36,6 +36,7 @@ public:
 protected:
     RoleAttributes role_attr_;
     std::atomic<bool> init_;
+    mutable std::mutex lock_;
 };
 
 

@@ -99,6 +99,7 @@ bool Manager::Join(const RoleAttributes& attr, RoleType role,
     //
     Dispose(msg);
 
+    //广播msg
     if (need_write) {
         return Write(msg);
     }
@@ -218,7 +219,7 @@ void Manager::Convert(const RoleAttributes& attr, RoleType role, OperateType opt
     }       
 }
 
-//通知执行回调
+//槽函数通知执行回调
 void Manager::Notify(const ChangeMsg& msg) { signal_(msg); }
 
 //判断是否是同一进程
@@ -234,9 +235,13 @@ bool Manager::IsFromSameProcess(const ChangeMsg& msg){
 
 
 bool Manager::Write(const ChangeMsg& msg){
+//使用eprosima::fastrtps::rtps::RTPSWriter* writer_ 发布数据
 
+  
   return true;
 }
+
+
 }
 }
 }

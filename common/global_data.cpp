@@ -134,16 +134,17 @@ uint64_t GlobalData::RegisterNode(const std::string& node_name){
 
     //拿到node_name的哈希值
     auto id  = Hash(node_name);
-    //
+    //检查hashmap中是否含有id
     while (node_id_map_.Has(id))
     {
+       //如果id存在
        std::string* name = nullptr;
        node_id_map_.Get(id, &name);
        if(node_name == *name){
         break;
        }
+       //说明有其他node_name和当前的哈希值相等，出现了哈希碰撞，将id++
        ++id;
-       //说明有其他node_name和当前的哈希值相等，出现了哈希碰撞
        std::cout << " Node name hash collision: " << node_name << " <=> " << *name << std::endl;
     }
     //确保node_name是一个唯一的id

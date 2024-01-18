@@ -1,10 +1,12 @@
-#pragma once 
+#ifndef CMW_SERIALIZ_SERIALIZABLE_H_
+#define CMW_SERIALIZ_SERIALIZABLE_H_
 
 namespace hnu{
 namespace cmw{
 namespace serialize{
     
 class DataStream;
+
 class Serializable
 {
 public:
@@ -13,6 +15,7 @@ public:
 };
 
 #define SERIALIZE(...)                              \
+                                                    \
     void serialize(DataStream & stream) const       \
     {                                               \
         char type = DataStream::CUSTOM;             \
@@ -35,3 +38,6 @@ public:
 }
 }
 }
+
+
+#endif

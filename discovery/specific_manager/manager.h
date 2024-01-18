@@ -33,17 +33,66 @@ public:
     virtual ~Manager();
     virtual void Shutdown();
 
+    /**
+     * @brief Startup topology discovery
+     *
+     * @param participant is used to create rtps Writer and Reader
+     * @return true if start successfully
+     * @return false if start fail
+   */
     bool StartDiscovery(RtpsParticipant* participant);
+
+    /**
+     * @brief Stop topology discovery
+     */
     void StopDiscovery();
 
+
+    /**
+     * @brief Join the topology
+     *
+     * @param attr is the attributes that will be sent to other Manager(include
+     * ourselves)
+     * @param role is one of RoleType enum
+     * @return true if Join topology successfully
+     * @return false if Join topology failed
+     */
     bool Join(const RoleAttributes& attr, RoleType role,
               bool need_write = true);
 
+    /**
+     * @brief Leave the topology
+     *
+     * @param attr is the attributes that will be sent to other Manager(include
+     * ourselves)
+     * @param role if one of RoleType enum.
+     * @return true if Leave topology successfully
+     * @return false if Leave topology failed
+     */   
     bool Leave(const RoleAttributes& attr, RoleType role);
 
+    /**
+     * @brief Add topology change listener, when topology changed, func will be
+     * called.
+     *
+     * @param func the callback function
+     * @return ChangeConnection Store it to use when you want to stop listening.
+     */
     ChangeConnection AddChangeListener(const ChangeFunc& func);
+
+    /**
+     * @brief Remove our listener for topology change.
+     *
+     * @param conn is the return value of `AddChangeListener`
+     */
     void RemoveChangeListener(const ChangeConnection& conn);
     
+    /**
+     * @brief Called when a process' topology manager instance leave
+     *
+     * @param host_name is the process's host's name
+     * @param process_id is the process' id
+     */
     virtual void OnTopoModuleLeave(const std::string& host_name,
                                  int process_id) = 0;
 protected:
@@ -71,6 +120,7 @@ protected:
     std::atomic<bool> is_shutdown_;
     std::atomic<bool> is_discovery_started_;
 
+    //允许的role
     int allowed_role_;
 
     ChangeType change_type_;

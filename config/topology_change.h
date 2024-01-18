@@ -2,12 +2,15 @@
 #define CMW_CONFIG_TOPOLOGYCHANGE_H_
 
 
+#include <cmw/serialize/serializable.h>
+
 #include <cstdint>
 #include <cmw/config/RoleAttributes.h>
 namespace hnu    {
 namespace cmw   {
 namespace config {
 
+using namespace serialize;
 //
 enum ChangeType{
   CHANGE_NODE = 1,
@@ -32,7 +35,7 @@ enum RoleType {
   ROLE_PARTICIPANT = 6,
 };
 
-struct ChangeMsg
+struct ChangeMsg 
 {
     uint64_t timestamp;  
     ChangeType change_type ;
