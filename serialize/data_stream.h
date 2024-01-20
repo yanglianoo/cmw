@@ -31,6 +31,8 @@ public:
         CHAR,
         INT32,
         INT64,
+        UINT32,
+        UINT64,
         FLOAT,
         DOUBLE,
         ENUM,
@@ -57,6 +59,8 @@ public:
     void write(bool value);
     void write(char value);
     void write(int32_t value);
+    void write(uint32_t value);
+    void write(uint64_t value);
     void write(int64_t value);
     void write(float value);
     void write(double value);
@@ -89,6 +93,8 @@ public:
     bool read(bool & value);
     bool read(char & value);
     bool read(int32_t & value);
+    bool read(uint32_t& value);
+    bool read(uint64_t& value);
     bool read(int64_t & value);
     bool read(float & value);
     bool read(double & value);
@@ -127,6 +133,8 @@ public:
     DataStream & operator << (char value);
     DataStream & operator << (int32_t value);
     DataStream & operator << (int64_t value);
+    DataStream & operator << (uint32_t value);
+    DataStream & operator << (uint64_t value);
     DataStream & operator << (float value);
     DataStream & operator << (double value);
     DataStream & operator << (const char * value);
@@ -149,6 +157,8 @@ public:
     DataStream & operator >> (char & value);
     DataStream & operator >> (int32_t & value);
     DataStream & operator >> (int64_t & value);
+    DataStream & operator >> (uint32_t & value);
+    DataStream & operator >> (uint64_t & value);
     DataStream & operator >> (float & value);
     DataStream & operator >> (double & value);
     DataStream & operator >> (string & value);

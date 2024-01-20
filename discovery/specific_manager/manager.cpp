@@ -83,6 +83,8 @@ void Manager::Shutdown(){
     signal_.DisconnectAllSlots();
 }
 
+
+/*加入拓扑网络*/
 bool Manager::Join(const RoleAttributes& attr, RoleType role,
                   bool need_write ){
     if(is_shutdown_.load()){
@@ -108,6 +110,7 @@ bool Manager::Join(const RoleAttributes& attr, RoleType role,
 
 }
 
+/*离开拓扑网络*/
 bool Manager::Leave(const RoleAttributes& attr, RoleType role){
     if(is_shutdown_.load()){
         std::cout << "the manager has been shut down." << std::endl;

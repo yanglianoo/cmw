@@ -3,7 +3,7 @@
 
 
 #include <cmw/serialize/serializable.h>
-
+#include <cmw/serialize/data_stream.h>
 #include <cstdint>
 #include <cmw/config/RoleAttributes.h>
 namespace hnu    {
@@ -35,13 +35,15 @@ enum RoleType {
   ROLE_PARTICIPANT = 6,
 };
 
-struct ChangeMsg 
+struct ChangeMsg : public Serializable
 {
     uint64_t timestamp;  
     ChangeType change_type ;
     OperateType operate_type;
     RoleType role_type;
     RoleAttributes role_attr;
+
+    SERIALIZE(timestamp,change_type,operate_type,role_type,role_attr)
 };
 
 }

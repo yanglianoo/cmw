@@ -26,11 +26,16 @@ public:
     using ExemptedMessageTypes = std::unordered_set<std::string>;
 
 
+    ChannelManager();
+    virtual ~ChannelManager();
+
+    void GetChannelNames(std::vector<std::string>* channels);
+
 private:
 
     bool Check(const RoleAttributes& attr) override;
-    void Dispose(const ChangeMsg& msg) override;
-    void OnTopoModuleLeave(const std::string& host_name, int process_id) override;
+    //void Dispose(const ChangeMsg& msg) override;
+    //void OnTopoModuleLeave(const std::string& host_name, int process_id) override;
 
     void DisposeJoin(const ChangeMsg& msg);
     void DisposeLeave(const ChangeMsg& msg);

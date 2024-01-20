@@ -6,6 +6,11 @@ using namespace std;
 
 using namespace hnu::cmw::serialize;
 
+enum QosDurabilityPolicy {
+  DURABILITY_SYSTEM_DEFAULT = 0,
+  DURABILITY_TRANSIENT_LOCAL = 1,
+  DURABILITY_VOLATILE = 2,
+};
 
 
 enum RoleType {
@@ -21,13 +26,14 @@ class Data_test : public Serializable
 {
 public:
     string a;
-    int b;
+    uint32_t b;
     RoleType role;
+    QosDurabilityPolicy policy = DURABILITY_SYSTEM_DEFAULT;
     int c;
     void show(){
-        std::cout << "a:" << a << " b:" << b << " role:" <<role << " c:" << c <<std::endl;
+        std::cout << "a:" << a << " b:" << b << " role:" <<(int)role << " c:" << c <<std::endl;
     }
-    SERIALIZE(a,b,role,c)
+    SERIALIZE(a,b,role,c,policy)
 };
 
 
@@ -37,7 +43,7 @@ public:
     string c;
     Data_test b;
     void show(){
-        std::cout << " c:" << c <<std::endl;
+        std::cout << "c:" << c <<std::endl;
     }
     SERIALIZE(c,b)
 };
@@ -47,10 +53,11 @@ int main()
 
 
     DataStream ds;
+
     Data_test data;
     data.a = "test";
-    data.b = 100;
     data.role = ROLE_CLIENT;
+    data.b = 5;
     data.c = 500;
 
 

@@ -97,23 +97,32 @@ public:
                                  int process_id) = 0;
 protected:
 
+    
     bool CreateWriter(RtpsParticipant* participant);
     bool CreateReader(RtpsParticipant* participant);
 
     
 
-    //两个纯虚函数，子类必须实现
+    //检查attr是否完整
     virtual bool Check(const RoleAttributes& attr) = 0;
+
     virtual void Dispose(const ChangeMsg& msg) = 0;
+
+    //判断是否需要发送ChangeMsg
     virtual bool NeedPublish(const ChangeMsg& msg) const;
 
-    
+    //通知监听ChangeMsg的回调函数
     void Notify(const ChangeMsg& msg);
+
+    //将ChangeMsg通过fastrtps发送出去
     bool Write(const ChangeMsg& msg);
+
     void OnRemoteChange(const std::string& msg_str);
+
+    //判断ChangeMsg中的信息是否为同一进程
     bool IsFromSameProcess(const ChangeMsg& msg);
 
-    //填充msg
+    //填充ChangeMsg
     void Convert(const RoleAttributes& attr, RoleType role, OperateType opt,
                ChangeMsg* msg);
 

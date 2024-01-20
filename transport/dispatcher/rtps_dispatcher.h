@@ -13,6 +13,7 @@
 #include <cmw/transport/rtps/participant.h>
 #include <cmw/transport/rtps/rea_listener.h>
 #include <fastrtps/rtps/rtps_fwd.h>
+#include <cmw/serialize/data_stream.h>
 
 namespace hnu    {
 namespace cmw   {
@@ -65,8 +66,16 @@ private:
 template <typename MessageT>
 void RtpsDispatcher::AddListener(const RoleAttributes& self_attr,
                                  const MessageListener<MessageT>& listener) {
+
+    auto listener_adapter = [listener](const std::shared_ptr<std::string>& msg_str, 
+                                       const MessageInfo& msg_info){
+            auto msg = std::make_shared<MessageT>();
+            serialize::DataStream ds(*msg_str);
+            ds >> *msg;
+            listener(msg , msg_info);
+    };
     //调用基类的AddListener来注册回调函数
-    Dispatcher::AddListener<std::string>(self_attr ,listener);
+    Dispatcher::AddListener<std::string>(self_attr ,listener_adapter);
     AddReader(self_attr);
 
 }
@@ -75,8 +84,16 @@ template <typename MessageT>
 void RtpsDispatcher::AddListener(const RoleAttributes& self_attr,
                                  const RoleAttributes& opposite_attr,
                                  const MessageListener<MessageT>& listener){
+
+    auto listener_adapter = [listener](const std::shared_ptr<std::string>& msg_str, 
+                                       const MessageInfo& msg_info){
+            auto msg = std::make_shared<MessageT>();
+            serialize::DataStream ds(*msg_str);
+            ds >> *msg;
+            listener(msg , msg_info);
+    };
     //调用基类的AddListener来注册回调函数
-    Dispatcher::AddListener<std::string>(self_attr,opposite_attr,listener);
+    Dispatcher::AddListener<std::string>(self_attr,opposite_attr,listener_adapter);
     //创建一个rtps reader
     AddReader(self_attr);
 }

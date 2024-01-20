@@ -4,13 +4,17 @@
 #include <string>
 
 #include <cmw/config/qos_profile.h>
+#include <cmw/serialize/serializable.h>
+#include <cmw/serialize/data_stream.h>
 namespace hnu    {
 namespace cmw   {
 namespace config {
+using namespace serialize;
 
-struct RoleAttributes
+/**/
+struct RoleAttributes : public Serializable
 {
-    std::string host_name;
+    std::string host_name;       
     std::string host_ip;
     int32_t process_id;
 
@@ -21,6 +25,8 @@ struct RoleAttributes
 
     std::string node_name;
     uint64_t node_id;  // hash value of node_name
+
+    SERIALIZE(host_name,host_ip,process_id,channel_name,qos_profile,id,node_name,node_id)
 };
 
 

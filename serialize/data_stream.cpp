@@ -194,6 +194,19 @@ void DataStream::write(int32_t value)
     write((char *)&value, sizeof(int32_t));
 }
 
+void DataStream::write(uint32_t value)
+{
+    char type = DataType::UINT32;
+    write((char *)&type, sizeof(char));
+    if (m_byteorder == ByteOrder::BigEndian)
+    {
+        char * first = (char *)&value;
+        char * last = first + sizeof(uint32_t);
+        std::reverse(first, last);
+    }
+    write((char *)&value, sizeof(uint32_t));
+}
+
 void DataStream::write(int64_t value)
 {
     char type = DataType::INT64;
@@ -205,6 +218,19 @@ void DataStream::write(int64_t value)
         std::reverse(first, last);
     }
     write((char *)&value, sizeof(int64_t));
+}
+
+void DataStream::write(uint64_t value)
+{
+    char type = DataType::UINT64;
+    write((char*)&type ,sizeof(char));
+    if(m_byteorder == ByteOrder::BigEndian)
+    {
+        char * first = (char*)&value;
+        char * last = first + sizeof(uint64_t);
+        std::reverse(first, last);
+    }
+    write((char*)&value, sizeof(uint64_t));
 }
 
 void DataStream::write(float value)
@@ -311,6 +337,24 @@ bool DataStream::read(int32_t & value)
     return true;
 }
 
+bool DataStream::read(uint32_t & value)
+{
+    if (m_buf[m_pos] != DataType::UINT32)
+    {
+        return false;
+    }
+    ++m_pos;
+    value = *((uint32_t *)(&m_buf[m_pos]));
+    if (m_byteorder == ByteOrder::BigEndian)
+    {
+        char * first = (char *)&value;
+        char * last = first + sizeof(uint32_t);
+        std::reverse(first, last);
+    }
+    m_pos += 4;
+    return true;
+}
+
 bool DataStream::read(int64_t & value)
 {
     if (m_buf[m_pos] != DataType::INT64)
@@ -323,6 +367,24 @@ bool DataStream::read(int64_t & value)
     {
         char * first = (char *)&value;
         char * last = first + sizeof(int64_t);
+        std::reverse(first, last);
+    }
+    m_pos += 8;
+    return true;
+}
+
+bool DataStream::read(uint64_t & value)
+{
+    if (m_buf[m_pos] != DataType::UINT64)
+    {
+        return false;
+    }
+    ++m_pos;
+    value = *((uint64_t *)(&m_buf[m_pos]));
+    if (m_byteorder == ByteOrder::BigEndian)
+    {
+        char * first = (char *)&value;
+        char * last = first + sizeof(uint64_t);
         std::reverse(first, last);
     }
     m_pos += 8;
@@ -457,6 +519,18 @@ DataStream & DataStream::operator << (int64_t value)
     return *this;
 }
 
+DataStream & DataStream::operator << (uint32_t value)
+{
+    write(value);
+    return *this;
+}
+
+DataStream & DataStream::operator << (uint64_t value)
+{
+    write(value);
+    return *this;
+}
+
 DataStream & DataStream::operator << (float value)
 {
     write(value);
@@ -506,6 +580,17 @@ DataStream & DataStream::operator >> (int32_t & value)
 }
 
 DataStream & DataStream::operator >> (int64_t & value)
+{
+    read(value);
+    return *this;
+}
+DataStream & DataStream::operator >> (uint32_t & value)
+{
+    read(value);
+    return *this;
+}
+
+DataStream & DataStream::operator >> (uint64_t & value)
 {
     read(value);
     return *this;

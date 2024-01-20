@@ -1,10 +1,14 @@
 #ifndef CMW_CONFIG_QOS_PROFILE_H_
 #define CMW_CONFIG_QOS_PROFILE_H_
 
+
+#include <cmw/serialize/serializable.h>
+#include <cmw/serialize/data_stream.h>
 namespace hnu    {
 namespace cmw   {
 namespace config {
 
+using namespace serialize;
 enum QosHistoryPolicy {
   HISTORY_SYSTEM_DEFAULT = 0,
   HISTORY_KEEP_LAST = 1,
@@ -23,15 +27,17 @@ enum QosDurabilityPolicy {
   DURABILITY_VOLATILE = 2,
 };
 
-
-struct QosProfile
+/*Qos配置信息结构体，支持序列化*/
+class QosProfile : public Serializable
 {
+public:
   QosHistoryPolicy history = HISTORY_KEEP_LAST;
   uint32_t depth = 2; //default = 1 
   uint32_t mps = 3;  // [default = 0];    // messages per second
   QosReliabilityPolicy reliability = RELIABILITY_RELIABLE;
   QosDurabilityPolicy durability = DURABILITY_VOLATILE;
 
+  SERIALIZE(history,depth,mps,reliability,durability)
 };
 
 

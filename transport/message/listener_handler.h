@@ -9,6 +9,7 @@
 #include <cmw/transport/message/message_info.h>
 #include <cmw/base/signal.h>
 #include <cmw/base/atomic_rw_lock.h>
+#include <cmw/serialize/data_stream.h>
 namespace hnu    {
 namespace cmw   {
 namespace transport {
@@ -31,8 +32,8 @@ public:
     virtual void Disconnect(uint64_t self_id) = 0;
     virtual void Disconnect(uint64_t slef_id, uint64_t oppo_id) = 0;
    // inline bool IsRawMessage() const { return is_raw_message_; }
-    // virtual void RunFromString(const std::string& str,
-    //                            const MessageInfo& msg_info) = 0;
+    virtual void RunFromString(const std::string& str,
+                                const MessageInfo& msg_info) = 0;
 protected:
     bool is_raw_message_ = false;
 };
@@ -60,7 +61,8 @@ public:
     void Disconnect(uint64_t self_id, uint64_t oppo_id) override;
 
     void Run(const Message& msg, const MessageInfo& msg_info);
-
+    void RunFromString(const std::string& str,
+                     const MessageInfo& msg_info) override;
 
 private:
     using SignalPtr = std::shared_ptr<MessageSignal>;
@@ -165,6 +167,19 @@ void ListenerHandler<MessageT>::Run(const Message& msg,
     (*signals_[oppo_id])(msg, msg_info);        
 
 }
+
+template <typename MessageT>
+void ListenerHandler<MessageT>::RunFromString(const std::string& str,
+                                              const MessageInfo& msg_info) {
+  auto msg = std::make_shared<MessageT>();
+  serialize::DataStream ds(str);
+  ds >> *msg;
+
+  Run(msg,msg_info);
+
+}
+
+
 
 
 

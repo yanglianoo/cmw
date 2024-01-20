@@ -8,6 +8,7 @@
 #include <cmw/transport/rtps/participant.h>
 #include <cmw/transport/rtps/attributes_filler.h>
 #include <fastrtps/rtps/RTPSDomain.h>
+#include <cmw/serialize/data_stream.h>
 using namespace eprosima::fastrtps::rtps;
 using namespace eprosima::fastrtps;
 
@@ -125,11 +126,14 @@ bool RtpsTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info) {
   wparams.related_sample_identity().sequence_number().high = (int32_t)((msg_info.seq_num() & 0xFFFFFFFF00000000) >> 32);
   wparams.related_sample_identity().sequence_number().low = (int32_t)(msg_info.seq_num() & 0xFFFFFFFF);
 
-  std::string str = "hello cmw";
-  //数据装载 测试用
-  ch->serializedPayload.length = str.size();
+  //序列化成字符串
+  serialize::DataStream ds; 
+  ds << msg;
+  
+  //数据装载 
+  ch->serializedPayload.length = ds.size();
 
-  std::memcpy((char*)ch->serializedPayload.data , str.data(), str.size());
+  std::memcpy((char*)ch->serializedPayload.data , ds.data(), ds.size());
   //发送数据
 
   bool flag = mp_history->add_change(ch,wparams);
