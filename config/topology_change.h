@@ -27,10 +27,10 @@ enum OperateType {
 
 //通信平面中角色的类型
 enum RoleType {
-  ROLE_NODE = 1,
-  ROLE_WRITER = 2,
-  ROLE_READER = 3,
-  ROLE_SERVER = 4,
+  ROLE_NODE = 1,        // Node
+  ROLE_WRITER = 2,   // Publisher
+  ROLE_READER = 3,  // Subscriber
+  ROLE_SERVER = 4,      // 
   ROLE_CLIENT = 5,
   ROLE_PARTICIPANT = 6,
 };

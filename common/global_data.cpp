@@ -115,21 +115,31 @@ const std::string& GlobalData::HostIp() const { return host_ip_; }
 const std::string& GlobalData::HostName() const { return host_name_; }
 
 
+//注册Channel
 uint64_t GlobalData::RegisterChannel(const std::string& channel) {
+
+  //拿到channel的哈希值
   auto id = Hash(channel);
+  //如果channel_id_map_能找到此id，
   while (channel_id_map_.Has(id)) {
     std::string* name = nullptr;
     channel_id_map_.Get(id, &name);
     if (channel == *name) {
+      //此channel已经被注册，直接break
       break;
     }
+    //说明有其他channel和当前的哈希值相等，出现了碰撞，将id++
     ++id;
     std::cout << "Channel name hash collision: " << channel << " <=> " << *name;
   }
+
+  
   channel_id_map_.Set(id, channel);
   return id;
 }
 
+
+//注册Node
 uint64_t GlobalData::RegisterNode(const std::string& node_name){
 
     //拿到node_name的哈希值

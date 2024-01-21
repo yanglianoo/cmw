@@ -26,9 +26,9 @@ void TEST_MUTILISTENER()
     attr.qos_profile = qos;
     
     auto listener1 = [](const std::shared_ptr<std::string>& message ,
-                       const MessageInfo&, const RoleAttributes&){
+                       const MessageInfo& info, const RoleAttributes&){
                         
-                        std::cout << *message << " data1" << std::endl;
+                        std::cout << *message << " data1" <<" seq: " << info.seq_num() <<std::endl;
                         
                        };
     auto listener2 = [](const std::shared_ptr<std::string>& message ,
@@ -45,7 +45,7 @@ void TEST_MUTILISTENER()
     std::cin.ignore();
 }
 
-void TEST_READER()
+void TEST_ChangeMsg()
 {
     auto dispatcher = RtpsDispatcher::Instance();
     RoleAttributes attr;
@@ -70,6 +70,7 @@ void TEST_READER()
 
 int main()
 {
-    TEST_READER();
+    //TEST_ChangeMsg();
+    TEST_MUTILISTENER();
     return 0;
 }

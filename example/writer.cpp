@@ -13,7 +13,7 @@ void TEST_GLOBAL_DATA()
     std::cout <<"ProcessGroup: " << GlobalData::Instance()->ProcessGroup() << std::endl;
 }
 
-void TEST_TRANSPORT_RtpsTransmitter()
+void TEST_MUTILISTENER()
 {
     using namespace hnu::cmw::config;
     using namespace hnu::cmw::common;
@@ -31,7 +31,7 @@ void TEST_TRANSPORT_RtpsTransmitter()
 
     auto transmitter = Transport::Instance()->CreateTransmitter<std::string>(attr);
 
-    std::shared_ptr<std::string> msg_ptr = std::make_shared<std::string>("hello cmw");
+    std::shared_ptr<std::string> msg_ptr = std::make_shared<std::string>("hnu cmw designed by timer!");
     MessageInfo msg;
     uint64_t n = 0;
     
@@ -100,7 +100,7 @@ void TEST_ChangeMsg()
 int main()
 {
     TEST_GLOBAL_DATA();
-    //TEST_TRANSPORT_RtpsTransmitter();
-    TEST_ChangeMsg();
+    TEST_MUTILISTENER();
+   // TEST_ChangeMsg();
     return 0;
 }

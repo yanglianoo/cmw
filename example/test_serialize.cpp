@@ -51,7 +51,6 @@ public:
 int main()
 {
 
-
     DataStream ds;
 
     Data_test data;

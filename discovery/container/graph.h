@@ -61,7 +61,9 @@ public:
     void set_value(const std::string& val) { value_ = val; }
 
 private:
+    //出发顶点
     Vertice src_;
+    //目标顶点
     Vertice dst_;
     std::string value_;
 };

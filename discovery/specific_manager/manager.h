@@ -117,6 +117,7 @@ protected:
     //将ChangeMsg通过fastrtps发送出去
     bool Write(const ChangeMsg& msg);
 
+    //有新的ChangeMsg时的回调函数
     void OnRemoteChange(const std::string& msg_str);
 
     //判断ChangeMsg中的信息是否为同一进程
@@ -138,9 +139,12 @@ protected:
     std::string channel_name_;
     std::mutex lock_;
 
-    eprosima::fastrtps::rtps::RTPSWriter* writer_;
-    eprosima::fastrtps::rtps::RTPSReader* reader_;
 
+    eprosima::fastrtps::rtps::RTPSWriter* writer_;
+    eprosima::fastrtps::rtps::WriterHistory* writer_history_;
+
+    
+    eprosima::fastrtps::rtps::RTPSReader* reader_;
     //fastrtps关于ChangeMsg的回调
     ReaderListener* listener_;
     //以ChangeMsg作为信号

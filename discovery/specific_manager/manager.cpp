@@ -9,6 +9,7 @@
 #include <fastrtps/rtps/reader/RTPSReader.h>
 #include <cmw/base/macros.h>
 #include <cmw/time/time.h>
+#include <cmw/serialize/data_stream.h>
 
 namespace hnu {
 namespace cmw {
@@ -165,10 +166,11 @@ bool Manager::CreateWriter(RtpsParticipant* participant){
     AttributesFiller::FillInWriterAttr(
         channel_name_, QosProfileConf::QOS_PROFILE_TOPO_CHANGE,&writer_attr);
     
-    eprosima::fastrtps::rtps::WriterHistory* mp_history = new WriterHistory(writer_attr.hatt);
-
-    writer_ = RTPSDomain::createRTPSWriter(participant , writer_attr.watt , mp_history);
-
+    //创建rtps writer history
+    writer_history_ = new WriterHistory(writer_attr.hatt);
+    //创建rtps writer
+    writer_ = RTPSDomain::createRTPSWriter(participant , writer_attr.watt , writer_history_);
+    //注册rtps writer
     bool reg = participant->registerWriter(writer_ , writer_attr.Tatt , writer_attr.Wqos);
 
     return reg;
@@ -185,12 +187,17 @@ void Manager::OnRemoteChange(const std::string& str_msg){
         std::cout <<  "the manager has been shut down." << std::endl;
         return;
     }
+
+
     ChangeMsg msg;
 
+    serialize::DataStream ds(str_msg);
     //需要将str_msg 反序列化成ChangeMsg类型的msg
+    ds >> msg;
 
-    //
+    //判断是否是同一进程
     if(IsFromSameProcess(msg)){
+        std::cout << "FromSameProcess" << std::endl;
         return;
     }
 
@@ -239,8 +246,38 @@ bool Manager::IsFromSameProcess(const ChangeMsg& msg){
 
 bool Manager::Write(const ChangeMsg& msg){
 //使用eprosima::fastrtps::rtps::RTPSWriter* writer_ 发布数据
-
   
+  //判断discovery是否启动了
+  if(!is_discovery_started_.load()){
+    std::cout << "discovery is not started." << std::endl;
+    return false;
+  }
+
+  //将ChangeMsg序列化
+  serialize::DataStream ds;
+  ds << msg;
+  
+  {
+    //
+    std::lock_guard<std::mutex> lg(lock_);
+    if(writer_ != nullptr){
+    //发送数据
+    CacheChange_t* ch = writer_->new_change([]() -> uint32_t
+                        {
+                          return 255;
+                        }, ALIVE);
+    //数据装载 
+    ch->serializedPayload.length = ds.size();
+    std::memcpy((char*)ch->serializedPayload.data , ds.data(), ds.size());
+    
+    bool flag = writer_history_->add_change(ch);
+    if(!flag)
+    {
+        writer_->remove_older_changes(20);
+        writer_history_->add_change(ch);
+    }
+    }
+  }
   return true;
 }
 

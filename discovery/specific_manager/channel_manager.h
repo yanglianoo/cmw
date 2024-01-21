@@ -28,13 +28,23 @@ public:
 
     ChannelManager();
     virtual ~ChannelManager();
+ 
+    
 
     void GetChannelNames(std::vector<std::string>* channels);
+    void GetMsgType(const std::string& channel_name, std::string* msg_type);
 
+    bool HasWriter(const std::string& channel_name);
+    void GetWriters(RoleAttrVec* writers);
+    bool HasReader(const std::string& channel_name);
+    void GetReaders(RoleAttrVec* readers);
+
+    bool IsMessageTypeMatching(const std::string& lhs, const std::string& rhs);
+    
 private:
 
     bool Check(const RoleAttributes& attr) override;
-    //void Dispose(const ChangeMsg& msg) override;
+    void Dispose(const ChangeMsg& msg) override;
     //void OnTopoModuleLeave(const std::string& host_name, int process_id) override;
 
     void DisposeJoin(const ChangeMsg& msg);
@@ -42,6 +52,9 @@ private:
 
     void ScanMessageType(const ChangeMsg& msg);
     
+
+    ExemptedMessageTypes exempted_msg_types_;
+
     Graph node_graph_;
     // key: node_id
     WriterWarehouse node_writers_;

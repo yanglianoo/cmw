@@ -18,6 +18,8 @@ using RoleNodePtr = std::shared_ptr<RoleNode>;
 
 class RoleWriter;
 using RoleWriterPtr = std::shared_ptr<RoleWriter>;
+
+//writer 和 reader 的属性一样
 using RoleReader = RoleWriter;
 using RoleReaderPtr = std::shared_ptr<RoleReader>;
 
