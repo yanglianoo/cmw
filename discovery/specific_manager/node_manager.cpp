@@ -39,13 +39,15 @@ void NodeManager::Dispose(const ChangeMsg& msg){
     }else{
         DisposeLeave(msg);
     }
-    //
+    //通知
     Notify(msg);
 }
 
 
+//拓扑机制结束
 void NodeManager::OnTopoModuleLeave(const std::string& host_name,
                                     int process_id) {
+
   RETURN_IF(!is_discovery_started_.load());
 
   RoleAttributes attr;

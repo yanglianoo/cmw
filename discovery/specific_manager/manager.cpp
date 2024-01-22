@@ -93,22 +93,21 @@ bool Manager::Join(const RoleAttributes& attr, RoleType role,
         return false;
     }    
 
-    //
+    //判断是否是允许的role
     RETURN_VAL_IF(!((1 << role) & allowed_role_), false);
+    //判断配置信息是否为空
+    RETURN_VAL_IF(!Check(attr), false);
     //创建一个msg
     ChangeMsg msg;
     //填充msg
     Convert(attr, role, OperateType::OPT_JOIN, &msg);
-    //
+    //处理msg
     Dispose(msg);
-
     //广播msg
     if (need_write) {
         return Write(msg);
     }
     return true;
-
-
 }
 
 /*离开拓扑网络*/

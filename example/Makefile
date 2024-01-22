@@ -34,7 +34,7 @@ ThirdPartyLib += -luuid
 
 
 writer: $(SRCS) writer.cpp
-	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath) 
 
 
 reader: $(SRCS) reader.cpp
@@ -44,6 +44,9 @@ test_serialize: $(SRCS) test_serialize.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
 test_node_manager: $(SRCS) test_node_manager.cpp
+	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+
+test_channel_manager: $(SRCS) test_channel_manager.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
 .PHONY:clean

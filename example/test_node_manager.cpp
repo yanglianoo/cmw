@@ -29,12 +29,45 @@ void TEST_NODE_CHANGE(){
 }
 
 void TEST_LISTENER(){
+    auto node_manager_ = std::make_shared<NodeManager>();
+    //为ChangeMsg绑定回调
+    auto conn = node_manager_->AddChangeListener([](const ChangeMsg& msg){ std::cout <<"ChangeMsg listener" << std::endl;});
+    RoleAttributes role_attr;
+    role_attr.host_name = GlobalData::Instance()->HostName();
+    role_attr.process_id =  GlobalData::Instance()->ProcessId();
+    role_attr.node_name = "node";
+    role_attr.node_id = GlobalData::RegisterNode("node");
+
+    node_manager_->Join(role_attr , RoleType::ROLE_NODE);
+
+    node_manager_->RemoveChangeListener(conn);
+
+    node_manager_->Leave(role_attr , RoleType::ROLE_NODE);
+}
+
+void TEST_GET_NODES(){
+    auto node_manager_ = std::make_shared<NodeManager>();
+    RoleAttributes role_attr;
+    role_attr.host_name = GlobalData::Instance()->HostName();
+    role_attr.process_id =  GlobalData::Instance()->ProcessId();
+    role_attr.node_name = "node";
+    role_attr.node_id = GlobalData::RegisterNode("node");
+
+    node_manager_->Join(role_attr, RoleType::ROLE_NODE);
+
+    std::vector<RoleAttributes> attr_nodes;
+    node_manager_->GetNodes(&attr_nodes);
+    std::cout << "node count: " << attr_nodes.size() << std::endl;
     
+
+
 }
 
 int main()
 {
     TEST_NODE_CHANGE();
+    TEST_LISTENER();
+    TEST_GET_NODES();
     return 0;
 }
 

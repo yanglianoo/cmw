@@ -22,6 +22,7 @@ bool ChannelManager::Check(const RoleAttributes& attr){
     RETURN_VAL_IF(attr.channel_name.empty(),false);
     RETURN_VAL_IF(!attr.channel_id, false);
     RETURN_VAL_IF(!attr.id, false);
+    return true;
 }
 
 
@@ -94,6 +95,34 @@ void ChannelManager::GetReaders(RoleAttrVec* readers) {
 }
 
 
+void ChannelManager::GetWritersOfChannel(const std::string& channel_name,
+                                         RoleAttrVec* writers){
+    RETURN_IF_NULL(writers);
+    uint64_t key = common::GlobalData::RegisterChannel(channel_name);
+    channel_writers_.Search(key , writers);
+}
+
+
+void ChannelManager::GetReadersOfChannel(const std::string& channel_name,
+                                        RoleAttrVec* readers){
+    RETURN_IF_NULL(readers);
+    uint64_t key = common::GlobalData::RegisterChannel(channel_name);
+    channel_readers_.Search(key , readers);
+}
+
+void ChannelManager::GetReadersOfNode(const std::string& node_name,
+                                      RoleAttrVec* readers) {
+  RETURN_IF_NULL(readers);
+  uint64_t key = common::GlobalData::RegisterNode(node_name);
+  node_readers_.Search(key, readers);
+}
+
+void ChannelManager::GetWritersOfNode(const std::string& node_name,
+                                      RoleAttrVec* writers) {
+  RETURN_IF_NULL(writers);
+  uint64_t key = common::GlobalData::RegisterNode(node_name);
+  node_writers_.Search(key, writers);
+}
 
 void ChannelManager::ScanMessageType(const ChangeMsg& msg){
 
@@ -155,7 +184,7 @@ void ChannelManager::DisposeJoin(const ChangeMsg& msg){
         e.set_src(v);
     } else {
         auto role = std::make_shared<RoleReader>(msg.role_attr , msg.timestamp);
-        node_readers_.Add(role->attributes().channel_id, role);
+        node_readers_.Add(role->attributes().node_id, role);
         channel_readers_.Add(role->attributes().channel_id, role);
         //设置此边的目标顶点
         e.set_dst(v);
@@ -194,6 +223,14 @@ void ChannelManager::Dispose(const ChangeMsg& msg){
     }
     Notify(msg);
 }
+
+
+void ChannelManager::OnTopoModuleLeave(const std::string& host_name,
+                                        int process_id)
+{
+
+}
+
 
 }
 }
