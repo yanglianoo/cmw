@@ -59,7 +59,15 @@ public:
    */
     void GetDownstreamOfNode(const std::string& node_name,
                             RoleAttrVec* downstream_nodes);     
-                            
+
+      /**
+   * @brief Get the Flow Direction from `lhs_node_node` to `rhs_node_name`
+   * You can see FlowDirection's description for more information
+   * @return FlowDirection result direction
+   */
+    FlowDirection GetFlowDirection(const std::string& lhs_node_name,
+                                    const std::string& rhs_node_name);      
+    
                                             
     void GetChannelNames(std::vector<std::string>* channels);
     void GetMsgType(const std::string& channel_name, std::string* msg_type);

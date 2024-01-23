@@ -225,9 +225,103 @@ void ChannelManager::Dispose(const ChangeMsg& msg){
 }
 
 
+void ChannelManager::GetUpstreamOfNode(const std::string& node_name,
+                                        RoleAttrVec* upstream_nodes){
+    RETURN_IF_NULL(upstream_nodes);
+    RoleAttrVec readers;
+    //拿到node中所用的 reader
+    GetReadersOfNode(node_name, &readers);
+    if(readers.empty()){
+        return;
+    }
+
+    //拿到各个reader对应的channel_name
+    std::unordered_set<std::string> channels;
+    for(auto& reader : readers){
+        channels.emplace(reader.channel_name);
+    }
+
+    //根据reader对应的channel拿到指向的writer
+    RoleAttrVec writers;
+    for(auto& channel : channels)
+    {
+        GetWritersOfChannel(channel , &writers);
+    }
+
+    //拿到每个writer所属的node
+    std::unordered_map<std::string , RoleAttributes> nodes;
+    for(auto& writer : writers)
+    {
+        RoleAttributes attr;
+        attr.host_name = writer.host_name;
+        attr.process_id = writer.process_id;
+        attr.node_name = writer.node_name;
+        attr.node_id = writer.node_id;
+        nodes[attr.node_name] = attr;
+    }
+
+    //将各个node保存到upstream_nodes中
+    for(auto& item : nodes)
+    {
+        upstream_nodes->emplace_back(item.second);
+    }
+}
+
+void ChannelManager::GetDownstreamOfNode(const std::string& node_name, 
+                                         RoleAttrVec* downstream_nodes){
+    RETURN_IF_NULL(downstream_nodes);
+
+    //根据node_name拿到此node中所有的writers
+    RoleAttrVec writers;
+    GetWritersOfNode(node_name , &writers);
+    if(writers.empty()){
+        return;
+    }
+
+    //拿到各个writer对应的channel_name
+    std::unordered_set<std::string> channels;
+    for (auto& writer : writers){
+        channels.emplace(writer.channel_name);
+    }
+
+    //拿到writer对应的channel指入的reader
+    RoleAttrVec readers;
+    for(auto& channel : channels)
+    {
+        GetReadersOfChannel(channel , &readers);
+    }
+
+    //拿到每个reader所属的node
+    std::unordered_map<std::string, RoleAttributes> nodes;
+    for(auto& reader : readers){
+        RoleAttributes attr;
+        attr.host_name = reader.host_name;
+        attr.process_id = reader.process_id;
+        attr.node_name = reader.node_name;
+        attr.node_id = reader.node_id;
+        nodes[attr.node_name] = attr;
+    }
+
+    //将node保存到downstream_nodes中
+    for(auto& node : nodes)
+    {
+        downstream_nodes->emplace_back(node.second);
+    }
+
+}
+
+
+FlowDirection ChannelManager::GetFlowDirection(const std::string& lhs_node_name,
+                                     const std::string& rhs_node_name){
+    Vertice lhs(lhs_node_name);
+    Vertice rhs(rhs_node_name);
+    return node_graph_.GetDirectionOf(lhs , rhs);        
+
+}
 void ChannelManager::OnTopoModuleLeave(const std::string& host_name,
                                         int process_id)
 {
+
 
 }
 
