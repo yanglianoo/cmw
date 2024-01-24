@@ -18,7 +18,7 @@ namespace discovery{
 class TopologyManager;
 
 class ChannelManager : public Manager {
-
+    friend class TopologyManager;
 public:
     using RoleAttrVec = std::vector<RoleAttributes>;
     using WriterWarehouse = MultiValueWarehouse;
@@ -85,6 +85,7 @@ private:
     bool Check(const RoleAttributes& attr) override;
     //处理ChangeMsg
     void Dispose(const ChangeMsg& msg) override;
+
     void OnTopoModuleLeave(const std::string& host_name, int process_id) override;
 
     

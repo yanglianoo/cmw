@@ -20,9 +20,9 @@ public:
     explicit ParticipantListener(const ChangeFunc& callback);
     virtual ~ParticipantListener();
 
-    virtual void onParticipantDiscovery(
+    void onParticipantDiscovery(
             eprosima::fastrtps::rtps::RTPSParticipant* p,
-            eprosima::fastrtps::rtps::ParticipantDiscoveryInfo info);
+            eprosima::fastrtps::rtps::ParticipantDiscoveryInfo&& info) override;
 private:
     ChangeFunc callback_;
     std::mutex mutex_;

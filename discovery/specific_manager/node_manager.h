@@ -14,8 +14,10 @@ namespace cmw {
 namespace discovery{ 
 
 
-class NodeManager : public Manager{
+class TopologyManager;
 
+class NodeManager : public Manager{
+    friend class TopologyManager;   //这里将TopologyManager声明成友元主要是为了TopologyManager能够访问NodeManager的私有成员
 public:
     using RoleAttrVec = std::vector<RoleAttributes>;
     using NodeWarehouse = SingleValueWarehouse;

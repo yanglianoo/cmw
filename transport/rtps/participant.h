@@ -22,6 +22,7 @@ public:
     void Shutdown();
     bool is_shutdown() const { return shutdown_.load(); }   
 
+    //返回rtps的Participant
     eprosima::fastrtps::rtps::RTPSParticipant*  fastrtps_participant();
 private:
     //创建一个 rtps的Participant

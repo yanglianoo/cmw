@@ -49,6 +49,9 @@ test_node_manager: $(SRCS) test_node_manager.cpp
 test_channel_manager: $(SRCS) test_channel_manager.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
+test_topology_manager: $(SRCS) test_topology_manager.cpp
+	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+	
 .PHONY:clean
 clean:
 	rm -rf *.out

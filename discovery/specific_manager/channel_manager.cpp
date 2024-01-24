@@ -319,9 +319,35 @@ FlowDirection ChannelManager::GetFlowDirection(const std::string& lhs_node_name,
 
 }
 void ChannelManager::OnTopoModuleLeave(const std::string& host_name,
-                                        int process_id)
+                                       int process_id)
 {
 
+    RETURN_IF(!is_discovery_started_.load())
+
+    RoleAttributes attr;
+    attr.host_name = host_name;
+    attr.process_id = process_id;
+
+    std::vector<RolePtr> writers_to_remove;
+    channel_writers_.Search(attr , &writers_to_remove);
+
+    std::vector<RolePtr> readers_to_remove;
+    channel_readers_.Search(attr, &readers_to_remove);
+
+    ChangeMsg msg;
+    for( auto& writer : writers_to_remove){
+        Convert(writer->attributes(), RoleType::ROLE_WRITER, OperateType::OPT_LEAVE,
+            &msg);
+        DisposeLeave(msg);
+        Notify(msg);
+    }
+
+    for (auto& reader : readers_to_remove) {
+        Convert(reader->attributes(), RoleType::ROLE_READER, OperateType::OPT_LEAVE,
+            &msg);
+        DisposeLeave(msg);
+        Notify(msg);
+    }
 
 }
 

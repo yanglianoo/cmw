@@ -26,7 +26,6 @@ public:
     void onReaderMatched(
                 eprosima::fastrtps::rtps::RTPSReader*,
                 eprosima::fastrtps::rtps::MatchingInfo& info) override{
-                    printf("matched\n");
         }
 private:
     NewMsgCallback callback_;
