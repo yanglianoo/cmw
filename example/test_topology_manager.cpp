@@ -7,6 +7,9 @@ using namespace hnu::cmw::discovery;
 int main()
 {   
     TopologyManager* topology_ = TopologyManager::Instance();
+    //rtps中的participant 就对应 cmw中的TopologyManager，
+    //当有新的rtps_participant加入时即有新的TopologyManager加入时，会执行下面的回调
+    //每个新加入的rtps_participant都会在通信平面广播自己的信息
 
     auto conn = topology_->AddChangeListener([](const ChangeMsg& change_msg){
             if (change_msg.change_type == ChangeType::CHANGE_PARTICIPANT &&

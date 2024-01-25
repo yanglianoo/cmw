@@ -33,11 +33,11 @@ ThirdPartyLib += -luuid
 # 	$(CC) $(INCLUDE) -o $@ $^ $(CFLAGS)  -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
 
-writer: $(SRCS) writer.cpp
+writer: $(SRCS) test_writer.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath) 
 
 
-reader: $(SRCS) reader.cpp
+reader: $(SRCS) test_reader.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
 test_serialize: $(SRCS) test_serialize.cpp
@@ -52,6 +52,11 @@ test_channel_manager: $(SRCS) test_channel_manager.cpp
 test_topology_manager: $(SRCS) test_topology_manager.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 	
+test_publisher: $(SRCS) test_publisher.cpp
+	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+
+test_subscriber: $(SRCS) test_subscriber.cpp
+	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 .PHONY:clean
 clean:
 	rm -rf *.out
