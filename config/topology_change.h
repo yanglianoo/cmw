@@ -11,7 +11,7 @@ namespace cmw   {
 namespace config {
 
 using namespace serialize;
-//
+//改变的类型
 enum ChangeType{
   CHANGE_NODE = 1,
   CHANGE_CHANNEL = 2,

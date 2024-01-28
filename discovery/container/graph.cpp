@@ -165,7 +165,7 @@ void Graph::InsertCompleteEdge(const Edge& e)
 
     //拿到插入边的终点的value
     auto& dst_v_k = e.dst().GetKey();
-    //如果没有找到此顶点的邻接表，则新建一个新的邻接表
+    //如果没有找到此顶点的邻接表，则新建一个新的邻接表，如果邻接表存在，则不管
     if(list_.find(dst_v_k) == list_.end()){
         list_[dst_v_k] = VerticeSet();
     }
