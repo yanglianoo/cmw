@@ -310,3 +310,150 @@ list_["est"] ["talker_dst"] = dst
 list_["dst"] = VerticeSet()
 
 插入的逻辑就如上分析
+
+然后是图的搜索：使用广度优先搜索算法遍历，判断是否有从`start`出发到`end`的路径：
+
+```c++
+//广度优先搜索（BFS）算法遍历图，
+bool Graph::LevelTraverse(const Vertice& start, const Vertice& end) {
+  std::unordered_map<std::string, bool> visited; 
+  visited[end.GetKey()] = false;  //将结束顶点标记为未访问
+  std::queue<Vertice> unvisited;  
+  unvisited.emplace(start);       //将起始顶点放入待访问队列。
+  while (!unvisited.empty()) {
+    auto curr = unvisited.front(); //从待访问队列中取出队首的顶点。
+    unvisited.pop();               //将已访问的顶点从待访问队列中移除。
+    if (visited[curr.GetKey()]) {  //如果当前顶点已经被访问过，则跳过该次循环。
+      continue;
+    }
+    visited[curr.GetKey()] = true;  //将当前顶点标记为已访问。
+    if (curr == end) {              //如果当前顶点是结束顶点，则退出循环，表示找到了从起始顶点到结束顶点的路径
+      break;
+    }
+    for (auto& item : list_[curr.GetKey()]) {  //将当前顶点的邻居顶点加入待访问队列。
+      unvisited.push(item.second);
+    }
+  }
+  return visited[end.GetKey()];    //返回一个布尔值，表示是否存在从起始顶点到结束顶点的路径。
+}
+```
+
+## 4. 拓扑图的管理
+
+### 4.1 拓扑结构
+
+假设我现在整个通信平面中有四个`Node`：各个节点间的连接关系如下
+
+  **A---a--->B---c----->D**
+
+ **|                             |**
+
+  **----b--->C-----d----->**
+
+![image-20240203193353555](image/image-20240203193353555.png)
+
+每个节点会维护着上面这样一个图，注意图的顶点是`Node`，而不是`Node`内部的`writer`或者`reader`，除了维护上面这样一个图外，由于每个Node中有多个`writer`或者`reader`，因此内部还需要一个数据结构来存储图中的每个`Node`内部的`writer`或者`reader`，每个角色有自己的`channel_name`。
+
+每个角色加入时都会广播自己的消息，已在图中的节点就会根据这个广播的消息更新这张图，比如现在`Node D`中的一个新添加一个`reader3`用于接收`channel c`来的消息，加入时广播的消息结构体即为上面提到的`ChangeMsg`:
+
+```c++
+struct ChangeMsg : public Serializable
+{
+    uint64_t timestamp;  
+    ChangeType change_type ;
+    OperateType operate_type;
+    RoleType role_type;
+    RoleAttributes role_attr;
+
+    SERIALIZE(timestamp,change_type,operate_type,role_type,role_attr)
+};
+显而易见此时：
+    role_type = ROLE_READER;
+	operate_type = OPT_JOIN;
+	change_type = CHANGE_CHANNEL;
+	role_attr.channel_name = "c";
+    role_attr.channel_id = Hash(role_attr.channel_name);
+	role_attr.node_name = "D";
+	role_attr.node_id = Hash(role_attr.node_name);
+```
+
+通过广播上面的消息，其他节点就知道了是一个新的属于`Node D`的`reader`加入拓扑图了
+
+![image-20240203192429902](image/image-20240203192429902.png)
+
+### 4.2 拓扑机制设计
+
+先看下面这张软件架构图，有一个总的`Manager`的基类，两个子类`NodeManager`和`channelManager`，我们主要用到的子类是`channel_manager`，`channel_manager`内部就会维护这个拓扑图
+
+![cmw拓扑机制](image/cmw拓扑机制.png)
+
+上面软件架构图中，蓝色的接口为私有接口，黄色的是虚函数，需要子类重载，粉红色的接口为公有接口
+
+先前提到由于当新的角色加入时需要广播信息，其他已经在拓扑图中的角色需要接收信息，因此借助`FastRtps`来实现通信，在`Manager`中可以看见定义了：
+
+```c++
+eprosima::fastrtps::rtps::RTPSWriter* writer_;   //用于发送广播信息
+eprosima::fastrtps::rtps::RTPSReader* reader_;   //用于接收广播信息
+```
+
+- `channel_manager`中`rtps writer`和 `reader`发送和接收的`ChangeMsg`的`channel_name`为``"channel_change_broadcast"``
+
+- `RtpsWriter`和`RtpsReader`是在`StartDiscovery`中创建的，这里值得注意的的是在创建`RtpsReader`绑定的回调函数为`OnRemoteChange`，而在回调函数的内部则去调用了`Dispose`函数，这个函数就是用来更新图的。对于一个已经存在于拓扑图中的节点来说，当其他节点加入或者离开拓扑图中时，会向`"channel_change_broadcast"`这个`channel`广播新加入的角色的`ChangeMsg`，此时就会触发此节点`RtpsReader`的回调，即去执行`OnRemoteChange`函数，实际上就是去执行`Dispose`函数，`Dispose`函数内部去解析`ChangeMsg`，这样就知道具体是图中的那个角色发生了改变，从而动态的更新拓扑图。
+
+- 当一个新的角色加入时，只需要在定义好角色的相关属性后，调用`ChannelManager`的`Join`函数即可，`Join`函数内部会先调用`Convert`去填充需要发送的`ChangeMsg`，然后调用`Dispose`函数根据`ChangeMsg`中的信息来更新拓扑图，然后将`ChangeMsg`通过在`Manager`中定义的`RtpsWriter`广播出去。
+- 当一个新的角色离开时，也是类似，根据要离开角色的信息调用`ChannelManager`的`Leave`函数即可，同样`Leave`函数内部会先调用`Join`函数内部会先调用`Convert`去填充需要发送的`ChangeMsg`，然后调用`Dispose`函数根据`ChangeMsg`中的信息来更新拓扑i图，和`Join`不同的地方在于此时图中就会删除边了，然后将`ChangeMsg`通过在`Manager`中定义的`RtpsWriter`广播出去。
+
+`Dispose`函数是由子类重载的，根据`ChangeMsg`中的`operate_type`来判断改变的角色是加入还是离开，如果是加入则执行`DisposeJoin`函数，如果是离开则执行`DisposeLeave`函数。在`ChannelManager`中定义了五个数据结构来维护这个拓扑机制：
+
+```c++
+    using WriterWarehouse = MultiValueWarehouse;   //键值允许重复的map
+    using ReaderWarehouse = MultiValueWarehouse;  //
+	//拓扑图数据结构
+	Graph node_graph_;
+    // key: node_id
+    WriterWarehouse node_writers_;
+    ReaderWarehouse node_readers_;
+    // key: channel_id
+    WriterWarehouse channel_writers_;
+    ReaderWarehouse channel_readers_;
+```
+
+以`DisposeJoin`为例子来看看如何维护这个拓扑机制的，`DisposeLeave`同理
+
+```c++
+void ChannelManager::DisposeJoin(const ChangeMsg& msg){
+    ScanMessageType(msg);
+
+    //以Node作为顶点
+    Vertice v(msg.role_attr.node_name);
+
+    Edge e;
+    //以channel_name作为边
+    e.set_value(msg.role_attr.channel_name);
+
+    //把writer作为出发顶点，reader作为目标顶点
+    if(msg.role_type == RoleType::ROLE_WRITER){
+        //
+        auto role = std::make_shared<RoleWriter>(msg.role_attr, msg.timestamp);
+        node_writers_.Add(role->attributes().node_id , role);
+        channel_writers_.Add(role->attributes().channel_id, role);
+        //设置此边的出发顶点
+        e.set_src(v);
+    } else {
+        auto role = std::make_shared<RoleReader>(msg.role_attr , msg.timestamp);
+        node_readers_.Add(role->attributes().node_id, role);
+        channel_readers_.Add(role->attributes().channel_id, role);
+        //设置此边的目标顶点
+        e.set_dst(v);
+    }
+    //将此边加入图中
+    node_graph_.Insert(e);
+}
+```
+
+- 首先以角色所属的`Node`构造一个顶点
+- 然后构造一条边，边的属性值即为角色绑定的`channel_name`
+- 根据`role_type`判断加入的角色是`writer`还是`reader`，如果是`writer`则代表新加入一条出边，如果是一条`reader`则代表新加入一条入边
+- 一个`Node`中可能包含多个`writer`和`reader`，以`node_id`作为`key`，添加`writer`或者`reader`到`node_writers_`和`node_readers_`这两张表中，整个拓扑图中所有的`reader`和`writer`都可以通过这两张表来查找
+- 同样一个`channel`可能也连接了多个`reader`和`writer`，所以用`channel_writers_`这`channel_readers_`这两张表来保存
+- 最后将边的信息加入拓扑图`node_graph_`中
