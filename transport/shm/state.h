@@ -30,13 +30,20 @@ public:
  
         
     }
+
+    //增加引用计数
     void IncreaseReferenceCounts() { reference_count_.fetch_add(1); }
+
+    uint32_t FetchAddSeq(uint32_t diff) { return seq_.fetch_add(diff); }
+
     uint32_t seq() { return seq_.load(); }
 
     void set_need_remap(bool need) { need_remap_.store(need);}
-    bool need_remap() { return need_remap_;}
 
+    bool need_remap() { return need_remap_;}
+    
     uint64_t ceiling_msg_size() { return ceiling_msg_size_.load(); }
+    //返回引用计数
     uint32_t reference_counts() { return reference_count_.load(); }
 
     

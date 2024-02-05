@@ -18,6 +18,10 @@ namespace transport{
 
 
 
+class Segment;
+using SegmentPtr = std::shared_ptr<Segment>;
+
+//可写的块内存结构体
 struct WritableBlock
 {
     uint32_t index = 0;

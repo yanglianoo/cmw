@@ -48,6 +48,110 @@ bool Segment::AcquireBlockToWrite(std::size_t msg_size, WritableBlock* writable_
 }
 
 
+void Segment::ReleaseWrittenBlock(const WritableBlock& writable_block){
+    auto index = writable_block.index;
+    if( index >= conf_.block_num()){
+        return;
+    }
+    //释放写锁
+    blocks_[index].ReleaseWriteLock();
+}
+
+bool Segment::AcquireBlockToRead(ReadableBlock* readable_block){
+    RETURN_VAL_IF_NULL(readable_block, false);
+    if(!init_ && !OpenOnly()){
+        std::cout << "failed to open shared memory, can't read now." << std::endl;
+        return false;       
+    }
+
+    auto index = readable_block->index;
+    if(index >= conf_.block_num()){
+        std::cout << "invalid block_index[" << index << "]." << std::endl;
+        return false;
+    }
+
+    bool result = true;
+    if( state_->need_remap() ){
+        result = Remap();
+    }
+
+    if(!result){
+        std::cout << "segment update failed." << std::endl;;
+        return false;
+    }
+
+    if(!blocks_[index].TryLockForRead()){
+        return false;
+    }
+    readable_block->block = blocks_ + index;
+    readable_block->buf = block_buf_addrs_[index];
+    return true;
+}
+
+//释放Block的读锁
+void Segment::ReleaseReadBlock(const ReadableBlock& readable_block){
+    auto index = readable_block.index;
+    if(index >= conf_.block_num()){
+        return;
+    }
+    blocks_[index].ReleaseReadLock();
+}
+
+bool Segment::Destroy(){
+    if(!init_){
+        return true;
+    }
+    init_ = false;
+
+    try
+    {
+        state_->DecreaseReferenceCounts();
+        uint32_t reference_counts = state_->reference_counts();
+        if(reference_counts == 0){
+            return Remove();
+        }
+    }
+    catch(...)
+    {
+        std::cout << "exception." << std::endl;
+        return false;
+    }
+
+    std::cout << "destroy." << std::endl;
+    return true;
+    
+}
+
+
+bool Segment::Remap(){
+    init_ = false;
+    std::cout << "before reset." << "\n";
+    Reset();
+    std::cout << "after reset." << "\n";
+    return OpenOnly();
+}
+
+bool Segment::Recreate(const uint64_t& msg_size){
+    init_ = false;
+    state_->set_need_remap(true);
+    Reset();
+    Remove();
+    conf_.Update(msg_size);
+    return OpenOrCreate();
+}
+
+uint32_t Segment::GetNextWritableBlockIndex(){
+    const auto block_num = conf_.block_num();
+    while (1)
+    {
+        uint32_t try_idx = state_->FetchAddSeq(1) % block_num;
+        if(blocks_[try_idx].TryLockForWrite()){
+            return try_idx;
+        }
+    }
+    return 0;
+}
+
 }
 }
 }
