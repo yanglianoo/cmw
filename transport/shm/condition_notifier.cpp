@@ -179,6 +179,19 @@ bool ConditionNotifier::OpenOnly(){
 }
 
 
+//删除共享内存
+bool ConditionNotifier::Remove(){
+    int shmid = shmget(key_, 0 , 0644);
+    if(shmid == -1 || shmctl(shmid, IPC_RMID,0) == -1){
+        std::cout << "remove shm failed, error code: " << strerror(errno) << std::endl;
+        return false;
+    }
+
+    std::cout << "remove success." << std::endl;
+    return true;
+}
+
+//shm detach 断开与共享内存的连接
 void ConditionNotifier::Reset(){
     indicator_ = nullptr;
     if(managed_shm_ != nullptr){

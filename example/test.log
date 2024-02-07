@@ -1,0 +1,5 @@
+2024-02-07 22:06:10 DEBUG test_log.cpp:9 test_log
+2024-02-07 22:26:00 DEBUG test_log.cpp:9 test_debug
+2024-02-07 22:26:00 INFO test_log.cpp:10 test_info
+%s %s %s:%d test_debug
+%s %s %s:%d test_info

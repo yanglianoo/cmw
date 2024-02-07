@@ -11,17 +11,17 @@ namespace transport{
 
 using common::GlobalData;
 
-MulticastNnotifier::MulticastNnotifier() {
+MulticastNotifier::MulticastNotifier() {
     if(!Init()){
         Shutdown();
     }
 }
 
-MulticastNnotifier::~MulticastNnotifier() { Shutdown();}
+MulticastNotifier::~MulticastNotifier() { Shutdown();}
 
 
 
-bool MulticastNnotifier::Init(){
+bool MulticastNotifier::Init(){
     std::string mcast_ip("239.255.0.100"); // 多播的ip
     uint16_t mcast_port = 8888;            // 多播的端口号
 
@@ -80,10 +80,12 @@ bool MulticastNnotifier::Init(){
         std::cout << "fail to setsockopt IP_ADD_MEMBERSHIP, " << strerror(errno)<<std::endl;
         return false;
     }
+
+    return true;
 }
 
 //发送ReadableInfo到组播网络中
-bool MulticastNnotifier::Notify(const ReadableInfo& info){
+bool MulticastNotifier::Notify(const ReadableInfo& info){
     if(is_shutdown_.load()){
         return false;
     }
@@ -95,7 +97,7 @@ bool MulticastNnotifier::Notify(const ReadableInfo& info){
 }
 
 
-bool MulticastNnotifier::Listen(int timeout_ms, ReadableInfo* info){
+bool MulticastNotifier::Listen(int timeout_ms, ReadableInfo* info){
     if(is_shutdown_.load()){
         return false;
     }
@@ -130,7 +132,7 @@ bool MulticastNnotifier::Listen(int timeout_ms, ReadableInfo* info){
 }
 
 
-void MulticastNnotifier::Shutdown(){
+void MulticastNotifier::Shutdown(){
     if(is_shutdown_.exchange(true)){
         return;
     }

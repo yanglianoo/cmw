@@ -21,7 +21,10 @@ bool Block::TryLockForWrite(){
                                        std::memory_order_acq_rel,
                                        std::memory_order_relaxed )){
             std::cout << "lock num: " << lock_num_.load() << std::endl;
+            return false;
     }
+    return true;
+
 }
 
 //加block加上读锁

@@ -4,8 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "/home/timer/Fast-DDS/install/include",   
-                "/home/timer/Fast-DDS",                   
-                "${workspaceRoot}"
+                "/home/timer/Fast-DDS"                 
             ],
             "defines": []
 

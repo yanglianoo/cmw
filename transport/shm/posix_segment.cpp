@@ -207,7 +207,7 @@ bool PosixSegment::Remove() {
   return true;
 }
 
-//重置共享内存
+//重置共享内存,解除映射
 void PosixSegment::Reset() {
   state_ = nullptr;
   blocks_ = nullptr;

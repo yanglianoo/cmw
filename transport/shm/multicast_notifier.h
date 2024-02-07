@@ -9,14 +9,16 @@ namespace hnu{
 namespace cmw{
 namespace transport{
 
-class MulticastNnotifier : public NotifierBase
+class MulticastNotifier : public NotifierBase
 {
 public:
-    virtual ~MulticastNnotifier();
+    virtual ~MulticastNotifier();
 
     void Shutdown() override;
     bool Notify(const ReadableInfo& info) override;
     bool Listen(int timeout_ms, ReadableInfo* info) override;
+
+    static const char* type() { return "multicast";}
 private:
     bool Init();
     
@@ -28,7 +30,7 @@ private:
 
     std::atomic<bool> is_shutdown_ = {false};
 
-    DECLARE_SINGLETON(MulticastNnotifier)
+    DECLARE_SINGLETON(MulticastNotifier)
      
 };
 

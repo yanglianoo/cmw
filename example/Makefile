@@ -26,6 +26,7 @@ ThirdPartyLibPath := /home/timer/Fast-DDS/install/lib #FastDDS的动态库目录
 ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3 
 ThirdPartyLib += -lpthread
 ThirdPartyLib += -luuid
+ThirdPartyLib += -lrt
 
 # .PHONY:libcmw.so
 # libcmw.so: $(SRCS)
@@ -56,6 +57,10 @@ test_publisher: $(SRCS) test_publisher.cpp
 
 test_subscriber: $(SRCS) test_subscriber.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+
+test_log: $(SRCS) test_log.cpp
+	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+
 .PHONY:clean
 clean:
 	rm -rf *.out
