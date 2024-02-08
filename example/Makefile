@@ -63,4 +63,5 @@ test_log: $(SRCS) test_log.cpp
 
 .PHONY:clean
 clean:
-	rm -rf *.out
+	rm -rf *.out 
+	rm -rf *.log

@@ -1,7 +1,7 @@
 #include <cmw/discovery/container/multi_value_warehouse.h>
 #include <algorithm>
 #include <utility>
-#include <cmw/base/macros.h>
+#include <cmw/common/log.h>
 
 namespace hnu {
 namespace cmw {

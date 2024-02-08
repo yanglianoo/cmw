@@ -1,6 +1,6 @@
 
 #include <cmw/transport/shm/segment.h>
-#include <cmw/base/macros.h>
+#include <cmw/common/log.h>
 #include <iostream>
 namespace hnu{
 namespace cmw{

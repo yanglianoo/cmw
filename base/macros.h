@@ -36,37 +36,5 @@
 
 
 
-#if !defined(RETURN_IF_NULL)
-#define RETURN_IF_NULL(ptr)          \
-  if (ptr == nullptr) {              \
-    std::cout << #ptr << " is nullptr."<< std::endl; \
-    return;                          \
-  }
-#endif
-
-
-#if !defined(RETURN_VAL_IF_NULL)
-#define RETURN_VAL_IF_NULL(ptr, val) \
-  if (ptr == nullptr) {              \
-    std::cout << #ptr << " is nullptr."<< std::endl; \
-    return val;                      \
-  }
-#endif
-
-#if !defined(RETURN_VAL_IF)
-#define RETURN_VAL_IF(condition, val)  \
-  if (condition) {                     \
-    std::cout << #condition << " is met."<< std::endl; \
-    return val;                        \
-  }
-#endif
-
-#if !defined(RETURN_IF)
-#define RETURN_IF(condition)           \
-  if (condition) {                     \
-    std::cout << #condition << " is met."<< std::endl;  \
-    return;                            \
-  }
-#endif
 
 #endif

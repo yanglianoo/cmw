@@ -1,5 +1,5 @@
 #include <cmw/discovery/container/single_value_warehouse.h>
-#include <cmw/base/macros.h>
+#include <cmw/common/log.h>
 
 namespace hnu {
 namespace cmw {

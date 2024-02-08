@@ -7,6 +7,7 @@
 #include <cmw/discovery/topology_manager.h>
 #include <cmw/transport/transmitter/transmitter.h>
 #include <cmw/transport/transmitter/rtps_transmitter.h>
+#include <cmw/common/log.h>
 namespace hnu    {
 namespace cmw   {
 

@@ -1,5 +1,5 @@
 #include <cmw/discovery/specific_manager/channel_manager.h>
-#include <cmw/base/macros.h>
+#include <cmw/common/log.h>
 #include <cmw/common/global_data.h>
 #include <set>
 

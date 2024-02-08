@@ -7,7 +7,7 @@
 #include <cmw/transport/qos/qos_profile_conf.h>
 #include <cmw/transport/rtps/participant.h>
 #include <fastrtps/rtps/reader/RTPSReader.h>
-#include <cmw/base/macros.h>
+#include <cmw/common/log.h>
 #include <cmw/time/time.h>
 #include <cmw/serialize/data_stream.h>
 

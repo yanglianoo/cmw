@@ -1,5 +1,5 @@
 #include <cmw/log/logger.h>
-
+#include <cmw/log/logstream.h>
 #include <time.h>
 #include <stdarg.h>
 #include <string.h>
@@ -151,6 +151,9 @@ void Logger::rotate()
     open(m_filename);
 }
 
+LogStream Logger::logStream(Level level,const char* file, int line){
+    return LogStream(level, file, line);
+}
 
 }
 }

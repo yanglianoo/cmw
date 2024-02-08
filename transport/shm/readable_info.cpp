@@ -2,7 +2,7 @@
 #include <cstring>
 
 
-#include <cmw/common/macros.h>
+#include <cmw/common/log.h>
 
 namespace hnu{
 namespace cmw{

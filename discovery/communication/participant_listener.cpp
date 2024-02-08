@@ -1,5 +1,5 @@
 #include <cmw/discovery/communication/participant_listener.h>
-#include <cmw/base/macros.h>
+#include <cmw/common/log.h>
 
 
 namespace hnu {
