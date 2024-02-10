@@ -58,9 +58,9 @@ void TEST_ChangeMsg()
     attr.qos_profile = qos;
 
     auto listener1 = [](const std::shared_ptr<ChangeMsg>& message ,
-                       const MessageInfo&, const RoleAttributes&){
+                       const MessageInfo& info, const RoleAttributes&){
                         
-                        std::cout<<"time: " << message->timestamp << "operate_type:"  << message->operate_type << std::endl;
+                        std::cout<<"time: " << message->timestamp << "operate_type:"  << message->operate_type << "seq:" << info.seq_num() << std::endl;
                         
                        };
     auto rtps1 =Transport::Instance()->CreateReceiver<ChangeMsg>(attr,listener1);
@@ -70,7 +70,7 @@ void TEST_ChangeMsg()
 
 int main()
 {
-    //TEST_ChangeMsg();
-    TEST_MUTILISTENER();
+    TEST_ChangeMsg();
+    //TEST_MUTILISTENER();
     return 0;
 }

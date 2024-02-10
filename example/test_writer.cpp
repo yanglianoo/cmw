@@ -90,7 +90,7 @@ void TEST_ChangeMsg()
     {
 
         msg.set_seq_num(n);
-       // std::cout<<"seq: " << n << std::endl;
+        std::cout<<"seq: " << n << std::endl;
         n++;
         transmitter->Transmit(msg_ptr, msg);
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
@@ -100,7 +100,7 @@ void TEST_ChangeMsg()
 int main()
 {
     TEST_GLOBAL_DATA();
-    TEST_MUTILISTENER();
-   // TEST_ChangeMsg();
+    //TEST_MUTILISTENER();
+    TEST_ChangeMsg();
     return 0;
 }

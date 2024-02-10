@@ -476,6 +476,12 @@ void DataStream::reset()
     m_pos = 0;
 }
 
+//返回序列化后的数据占用内存的字节数
+size_t DataStream::ByteSize()
+{
+    return sizeof(char) * m_buf.size();
+}
+
 void DataStream::save(const string & filename)
 {
     ofstream fout(filename);

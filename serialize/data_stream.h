@@ -124,6 +124,7 @@ public:
 
     const char * data() const;
     int size() const;
+    size_t ByteSize();
     void clear();
     void reset();
     void save(const string & filename);

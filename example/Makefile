@@ -33,11 +33,11 @@ ThirdPartyLib += -lrt
 # 	$(CC) $(INCLUDE) -o $@ $^ $(CFLAGS)  -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
 
-writer: $(SRCS) test_writer.cpp
+test_writer: $(SRCS) test_writer.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath) 
 
 
-reader: $(SRCS) test_reader.cpp
+test_reader: $(SRCS) test_reader.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
 test_serialize: $(SRCS) test_serialize.cpp

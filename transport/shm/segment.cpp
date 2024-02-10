@@ -28,6 +28,7 @@ bool Segment::AcquireBlockToWrite(std::size_t msg_size, WritableBlock* writable_
         result = Remap();
     }
 
+    //如果msg_size 超过默认的 size，则销毁之前创建的共享内存，重新创建一块更大的内存
     if(msg_size > conf_.ceiling_msg_size()){
        std::cout<< "msg_size: " << msg_size
                 << " larger than current shm_buffer_size: "
@@ -41,6 +42,7 @@ bool Segment::AcquireBlockToWrite(std::size_t msg_size, WritableBlock* writable_
     }
 
     uint32_t index = GetNextWritableBlockIndex();
+    //将writable_block 指向 blocks_[index]
     writable_block->index = index;
     writable_block->block = &blocks_[index];
     writable_block->buf = block_buf_addrs_[index];
@@ -144,7 +146,9 @@ uint32_t Segment::GetNextWritableBlockIndex(){
     const auto block_num = conf_.block_num();
     while (1)
     {
+        //返回seq，并将seq加一
         uint32_t try_idx = state_->FetchAddSeq(1) % block_num;
+        //为blocks_[try_idx] 这块内存加上写锁
         if(blocks_[try_idx].TryLockForWrite()){
             return try_idx;
         }

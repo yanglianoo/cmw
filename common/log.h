@@ -13,7 +13,7 @@
 #include <cmw/log/logstream.h>
 using namespace hnu::cmw::logger;
 
-
+#define Logger_Init(file_name) Logger::Instance()->open(file_name)
 #define ADEBUG Logger::Instance()->logStream(Logger::LOG_DEBUG,__FILE__, __LINE__)
 #define AINFO Logger::Instance()->logStream(Logger::LOG_INFO,__FILE__, __LINE__) 
 #define AWARN Logger::Instance()->logStream(Logger::LOG_WARN,__FILE__, __LINE__) 

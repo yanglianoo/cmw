@@ -33,9 +33,9 @@ private:
   uint32_t GetBlockNum(const uint64_t& ceiling_msg_size);
 
   uint64_t ceiling_msg_size_;  //消息上限大小
-  uint64_t block_buf_size_;
+  uint64_t block_buf_size_;    //每个block的buf的大小
   uint64_t block_num_;
-  uint64_t managed_shm_size_;
+  uint64_t managed_shm_size_; //管理的共享内存的大小
 
   // Extra size, Byte
   static const uint64_t EXTRA_SIZE;

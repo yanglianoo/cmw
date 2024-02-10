@@ -4,7 +4,7 @@ using namespace hnu::cmw::logger;
 
 int main()
 {
-    Logger::Instance()->open("test.log");
+    Logger_Init("test.log");
     log_info("c info");
     log_warn("c warn");
     //流式log
