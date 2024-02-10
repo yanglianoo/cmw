@@ -37,7 +37,7 @@ enum RoleType {
   ROLE_READER = 3,      // Subscriber
   ROLE_SERVER = 4,      // 
   ROLE_CLIENT = 5,
-  ROLE_PARTICIPANT = 6,
+  ROLE_PARTICIPANT = 6, //Participant
 };
 ```
 
@@ -350,7 +350,7 @@ bool Graph::LevelTraverse(const Vertice& start, const Vertice& end) {
 
   **----b--->C-----d----->**
 
-![image-20240203193353555](image/image-20240203193353555.png)
+![image-20240204224457005](image/image-20240204224457005.png)
 
 每个节点会维护着上面这样一个图，注意图的顶点是`Node`，而不是`Node`内部的`writer`或者`reader`，除了维护上面这样一个图外，由于每个Node中有多个`writer`或者`reader`，因此内部还需要一个数据结构来存储图中的每个`Node`内部的`writer`或者`reader`，每个角色有自己的`channel_name`。
 
@@ -379,7 +379,7 @@ struct ChangeMsg : public Serializable
 
 通过广播上面的消息，其他节点就知道了是一个新的属于`Node D`的`reader`加入拓扑图了
 
-![image-20240203192429902](image/image-20240203192429902.png)
+![image-20240204224359604](image/image-20240204224359604.png)
 
 ### 4.2 拓扑机制设计
 
@@ -457,3 +457,29 @@ void ChannelManager::DisposeJoin(const ChangeMsg& msg){
 - 一个`Node`中可能包含多个`writer`和`reader`，以`node_id`作为`key`，添加`writer`或者`reader`到`node_writers_`和`node_readers_`这两张表中，整个拓扑图中所有的`reader`和`writer`都可以通过这两张表来查找
 - 同样一个`channel`可能也连接了多个`reader`和`writer`，所以用`channel_writers_`这`channel_readers_`这两张表来保存
 - 最后将边的信息加入拓扑图`node_graph_`中
+
+在`Manager`基类中有一个成员：`signal_`
+
+```c++
+    using ChangeSignal = base::Signal<const ChangeMsg&>;
+    using ChangeFunc = std::function<void(const ChangeMsg&)>;
+    using ChangeConnection = base::Connection<const ChangeMsg&>;
+   //以ChangeMsg作为信号
+    ChangeSignal signal_;
+```
+
+- 这个一个绑定`ChangeMsg`的信号
+- 每一个节点都可以通过`AddChangeListener`来为此信号添加槽函数，也可以通过`RemoveChangeListener`来为此信号删除槽函数
+- 在`Dispose`的最后一步会通过`Notify`函数去执行所有槽函数
+
+### 4.3 拓扑机制的管理
+
+有了上面的`Manager`的类，我们只需要调用类中开启服务发现机制的函数就可实现服务发现的管理了，，除了上面提到的`Node`，`Writer`，`Reader`之外，还有一个角色就是`Participant`,`cmw`中的`Participant`实际上就是`RtpsParticipant`的抽象而已，它也具有`RtpsParticipant`的所有机制，比如当新的`Participant`加入拓扑平面时会广播自身的信息，其他节点会接收到此信息从而去执行相应的回调函数。因此设计了`TopologyManager`这个类
+
+![cmw拓扑机制-TopologyManager](image/cmw拓扑机制-TopologyManager.png)
+
+- `TopologyManager`除了能够监测`Participant`的加入和退出，同时它还持有了`channel_manager`和`node_manager`，因此通过这个类就可以实现对通信平面中所有角色的拓扑管理
+- `TopologyManager`是一个全局单例
+- 每一个`Participant`加入时广播的信息是`PartInfo`，这个数据结构是`Fast-Rtps`中`RtpsParticpant`加入或者离开拓扑时发送的信息，包含了`Participant`的名字以及它是加入还是离开的标志位，还有此`Participant`的`id`
+- 通过对`PartInfo`的解析，就能知道是哪一个进程的什么``RtpsParticpant``加入或者离开拓扑图了，`participant_names_`这个`map`会随之进行更新，以`Participant`的`id`为`key`，`Participant`的名字为`value`
+- 和`channel_manager`和`node_manager`一样，`TopologyManager`内部包含一个`signal_`，这个`signal_`是用于监听`Participant`的行为，通过`AddChangeListener`去添加槽函数，当有新的`Participant`加入或者离开时，添加的槽函数就会被执行
