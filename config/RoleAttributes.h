@@ -22,7 +22,7 @@ struct RoleAttributes : public Serializable
     uint64_t channel_id;         // hash value of channel_name
 
     QosProfile qos_profile;      //Qos配置策略
-    uint64_t id;
+    uint64_t id;                 //
 
     std::string node_name;       // node name
     uint64_t node_id;            // hash value of node_name

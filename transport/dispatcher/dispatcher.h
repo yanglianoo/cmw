@@ -15,6 +15,7 @@
 #include <cmw/transport/message/message_info.h>
 #include <cmw/transport/message/listener_handler.h>
 #include <cmw/common/global_data.h>
+#include <cmw/common/log.h>
 
 namespace hnu    {
 namespace cmw   {
@@ -61,6 +62,7 @@ public:
 
 protected:
     std::atomic<bool> is_shutdown_;
+    //保存回调函数的哈希表，key为channel_id，值为此channel对应的ListenerHandler
     AtomicHashMap<uint64_t, ListenerHandlerBasePtr> msg_listeners_;
     base::AtomicRWLock rw_lock_;
 
@@ -73,26 +75,34 @@ void Dispatcher::AddListener(const RoleAttributes& self_attr,
     if(is_shutdown_.load()){
         return ;
     }
+    //拿到channel_id
     uint64_t channel_id = self_attr.channel_id;
+    //创建一个新的ListenerHandler
     std::shared_ptr<ListenerHandler<MessageT>> handler;
+
     ListenerHandlerBasePtr* handler_base = nullptr;
     
+    //如果此channel_id已经有ListenerHandler了
     if(msg_listeners_.Get(channel_id, &handler_base)){
+        //取出此channel_id对应的ListenerHandler
         handler = 
             std::dynamic_pointer_cast<ListenerHandler<MessageT>>(*handler_base);
             if (handler == nullptr) {
-      std::cout << "please ensure that readers with the same channel["
+      AERROR <<  "please ensure that readers with the same channel["
              << self_attr.channel_name
-             << "] in the same process have the same message type"<< std::endl;
+             << "] in the same process have the same message type";
       return;
              }
     } else{
-        std::cout << "new reader for channel:"
-           << GlobalData::GetChannelById(channel_id) << std::endl;
+        //说明此channel_id没有对应的ListenerHandler
+        ADEBUG << "new reader for channel:"
+           << GlobalData::GetChannelById(channel_id);
+        //新建一个ListenerHandler
         handler.reset(new ListenerHandler<MessageT>());
+        //建立channel_id 与 ListenerHandler的对应关系，保存到msg_listeners_中
         msg_listeners_.Set(channel_id, handler);
     }
-
+    //为此ListenerHandler连接槽函数，一个id可以绑定多个槽函数
     handler->Connect(self_attr.id, listener);
 
 }

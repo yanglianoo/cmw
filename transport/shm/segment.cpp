@@ -62,13 +62,13 @@ void Segment::ReleaseWrittenBlock(const WritableBlock& writable_block){
 bool Segment::AcquireBlockToRead(ReadableBlock* readable_block){
     RETURN_VAL_IF_NULL(readable_block, false);
     if(!init_ && !OpenOnly()){
-        std::cout << "failed to open shared memory, can't read now." << std::endl;
+        AERROR << "failed to open shared memory, can't read now." ;
         return false;       
     }
 
     auto index = readable_block->index;
     if(index >= conf_.block_num()){
-        std::cout << "invalid block_index[" << index << "]." << std::endl;
+        AERROR << "invalid block_index[" << index << "].";
         return false;
     }
 
@@ -78,7 +78,7 @@ bool Segment::AcquireBlockToRead(ReadableBlock* readable_block){
     }
 
     if(!result){
-        std::cout << "segment update failed." << std::endl;;
+        AERROR << "segment update failed." ;
         return false;
     }
 

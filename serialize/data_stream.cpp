@@ -23,6 +23,13 @@ DataStream::DataStream(const string & str) : m_pos(0)
     reserve(str.size());
     write(str.data(), str.size());
 }
+DataStream::DataStream(const char* ptr, size_t size)
+{   
+    m_byteorder = byteorder();
+    m_buf.clear();  //清空vector
+    reserve(size);
+    write(ptr,size);
+}
 
 DataStream::~DataStream()
 {

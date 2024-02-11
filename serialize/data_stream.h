@@ -52,6 +52,7 @@ public:
 
     DataStream();
     DataStream(const string & data);
+    DataStream(const char* ptr, size_t size);
     ~DataStream();
 
     void show() const;

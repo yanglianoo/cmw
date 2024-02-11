@@ -22,7 +22,7 @@ template <typename M>
 class ShmTransmitter : public Transmitter<M> {
 
 public:
-    using MessagePtr = std:shared_ptr<M>;
+    using MessagePtr = std::shared_ptr<M>;
 
     explicit ShmTransmitter(const RoleAttributes& attr);
     virtual ~ShmTransmitter();
@@ -43,7 +43,7 @@ private:
 
 template <typename M>
 ShmTransmitter<M>::ShmTransmitter(const RoleAttributes& attr)
-    : Transmitter(attr),
+    : Transmitter<M>(attr),
       segment_(nullptr),
       channel_id_(attr.channel_id),
       notifier_(nullptr)
@@ -116,7 +116,7 @@ bool ShmTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info){
     //拷贝spare_id_
     std::memcpy(msg_info_addr + ID_SIZE , msg_info.spare_id().data() , ID_SIZE);
     //拷贝 seq
-    std::memcpy(msg_info_addr + ID_SIZE*2, msg_info.seq_num() , sizeof(uint64_t));
+    *reinterpret_cast<uint64_t*>(msg_info_addr + ID_SIZE*2) = msg_info.seq_num() ;
 
 
     wb.block->set_msg_info_size(ID_SIZE*2 +sizeof(uint64_t));

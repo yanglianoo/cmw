@@ -10,6 +10,7 @@
 #include <cmw/base/signal.h>
 #include <cmw/base/atomic_rw_lock.h>
 #include <cmw/serialize/data_stream.h>
+#include <cmw/common/log.h>
 namespace hnu    {
 namespace cmw   {
 namespace transport {
@@ -43,12 +44,13 @@ template <typename MessageT>
 class ListenerHandler : public ListenerHandlerBase{
 
 public:
-    using Message = std::shared_ptr<MessageT>;
-    using MessageSignal = base::Signal<const Message&, const MessageInfo&>;
+    using Message = std::shared_ptr<MessageT>;  //一个MessageT的指针
 
-    using Listener = std::function<void(const Message&, const MessageInfo&)>;
+    using MessageSignal = base::Signal<const Message&, const MessageInfo&>; //监听MessageT的信号
+
+    using Listener = std::function<void(const Message&, const MessageInfo&)>; //回调函数Listener的定义
     using MessageConnection = 
-            base::Connection<const Message&, const MessageInfo&>;
+            base::Connection<const Message&, const MessageInfo&>;  //MessageT连接关系
     using ConnectionMap = std::unordered_map<uint64_t, MessageConnection>;
 
     ListenerHandler() {}
@@ -69,8 +71,9 @@ private:
     using MessageSignalMap = std::unordered_map<uint64_t, SignalPtr>;
 
 
-    MessageSignal signal_;
-    ConnectionMap signal_conns_;
+    MessageSignal signal_;     //
+
+    ConnectionMap signal_conns_; // key: self_id , 保存着信号的连接关系
 
 
     MessageSignalMap signals_;  //key: oppo_id
@@ -80,14 +83,14 @@ private:
 
     base::AtomicRWLock rw_lock_;
 /**
- * @brief  self_id 是读者的Endpoint的id
- * @brief  oppo_id 是写者的Endpoint的id
+ * @brief  self_id 是读者的Endpoint的id，即自己的id
+ * @brief  oppo_id 是写者的Endpoint的id。即对方的id
  */
 };
 
 template <typename MessageT>
 void ListenerHandler<MessageT>::Connect(uint64_t self_id, const Listener& listener){
-    auto connection = signal_.Connect(listener);
+    auto connection = signal_.Connect(listener);//为signal_连接一个槽函数
     if(!connection.IsConnected())
     {
         return;
@@ -95,6 +98,7 @@ void ListenerHandler<MessageT>::Connect(uint64_t self_id, const Listener& listen
 
     //加锁
     WriteLockGuard<AtomicRWLock> lock(rw_lock_);
+    //每个实体的id是唯一的,同一进程下的多个receiver有可能监听同一channel，但是他们的id是唯一的
     signal_conns_[self_id] = connection;
 }
 
@@ -104,6 +108,7 @@ void ListenerHandler<MessageT>::Connect(uint64_t self_id, uint64_t oppo_id, cons
     WriteLockGuard<AtomicRWLock> lock(rw_lock_);
     if(signals_.find(oppo_id) == signals_.end())
     {
+        //新建一个MessageSignal
         signals_[oppo_id] = std::make_shared<MessageSignal>();
     }
     //为id名为oppo_id的信号添加槽listener
@@ -171,11 +176,13 @@ void ListenerHandler<MessageT>::Run(const Message& msg,
 template <typename MessageT>
 void ListenerHandler<MessageT>::RunFromString(const std::string& str,
                                               const MessageInfo& msg_info) {
-  auto msg = std::make_shared<MessageT>();
-  serialize::DataStream ds(str);
-  ds >> *msg;
+  // auto msg = std::make_shared<MessageT>();
+  // serialize::DataStream ds(str);
+  // ds >> *msg;
 
-  Run(msg,msg_info);
+  // Run(msg,msg_info);
+
+  AERROR << "RunFromString Error";
 
 }
 
