@@ -13,7 +13,6 @@ using common::Hash;
 
 ConditionNotifier::ConditionNotifier(){
     key_ = static_cast<key_t>(Hash("/hnu/cmw/transport/shm/notifier"));
-    ADEBUG<< "condition notifier key: " << key_ ;
     shm_size_ = sizeof(Indicator);
 
     if(!Init()){
@@ -66,7 +65,9 @@ bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
     int timeout_us = timeout_ms * 1000;
     while (!is_shutdown_.load())
     {   
+        
         uint64_t seq = indicator_->next_seq.load();
+
         //如果有其他进程 执行了Notify，则 seq > next_seq_ ,说明有新的info
         if(seq != next_seq_){
             auto idx = next_seq_ % kBufLength;
@@ -90,6 +91,7 @@ bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
         }
     }
 
+    ADEBUG << "debug listen";
     return false;
     
 }

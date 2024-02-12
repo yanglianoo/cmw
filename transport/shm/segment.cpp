@@ -148,7 +148,7 @@ uint32_t Segment::GetNextWritableBlockIndex(){
     {
         //返回seq，并将seq加一
         uint32_t try_idx = state_->FetchAddSeq(1) % block_num;
-        ADEBUG << "try_idx: " << try_idx;
+        //ADEBUG << "try_idx: " << try_idx;
         //为blocks_[try_idx] 这块内存加上写锁
         if(blocks_[try_idx].TryLockForWrite()){
             return try_idx;

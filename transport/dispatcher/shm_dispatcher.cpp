@@ -71,17 +71,18 @@ void ShmDispatcher::ReadMessage(uint64_t channel_id, uint32_t block_index){
           << " index: " << block_index;
       }
 
-      MessageInfo msg_info;
-      const char* msg_info_addr = 
-                    reinterpret_cast<char*>(rb->buf) + rb->block->msg_info_size();
-           //拷贝sender_id
+    MessageInfo msg_info;
+    const char* msg_info_addr = 
+                    reinterpret_cast<char*>(rb->buf) + rb->block->msg_size();
+    //拷贝sender_id
     std::memcpy((void*)msg_info.sender_id().data(), (void*)msg_info_addr,ID_SIZE);
     //拷贝spare_id_
     std::memcpy((void*)msg_info.spare_id().data() , (void*)(msg_info_addr + ID_SIZE) , ID_SIZE);
     //拷贝 seq
-    uint64_t seq_num = *((uint64_t*)(msg_info_addr+2*ID_SIZE));
+    msg_info.set_seq_num(*(reinterpret_cast<uint64_t*>(const_cast<char*>(msg_info_addr+2*ID_SIZE))));
 
     OnMessage(channel_id,rb,msg_info);
+    //释放此block的读锁
     segments_[channel_id]->ReleaseReadBlock(*rb);
 }
 
@@ -90,7 +91,7 @@ void ShmDispatcher::ThreadFunc(){
     while (!is_shutdown_.load())
     {
         if(!notifier_->Listen(100, &readable_info)){
-            ADEBUG << "listen failed.";
+            //ADEBUG << "listen failed.";
             continue;
         }
 

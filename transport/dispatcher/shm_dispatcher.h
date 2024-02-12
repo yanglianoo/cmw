@@ -59,14 +59,13 @@ private:
 template <typename MessageT>
 void ShmDispatcher::AddListener(const RoleAttributes& self_attr,
                                 const MessageListener<MessageT>& listener){
-
+        //回调函数包装器
         auto listener_adapter = [listener](const std::shared_ptr<ReadableBlock>& rb,
                                           const MessageInfo& msg_info){
            auto msg = std::make_shared<MessageT>();
             //数据反序列化
            serialize::DataStream ds(reinterpret_cast<char*>(rb->buf) , rb->block->msg_size());
            ds >> *msg;
-           //感觉这里msg_info是否也需要反序列化
            //执行回调
            listener(msg, msg_info);
         };
@@ -83,7 +82,7 @@ void ShmDispatcher::AddListener(const RoleAttributes& self_attr,
   auto listener_adapter = [listener](const std::shared_ptr<ReadableBlock>& rb,
                                      const MessageInfo& msg_info) {
     auto msg = std::make_shared<MessageT>();
-            //数据反序列化
+    //数据反序列化
     serialize::DataStream ds(reinterpret_cast<char*>(rb->buf) , rb->block->msg_size());
     ds >> *msg;
     listener(msg, msg_info);

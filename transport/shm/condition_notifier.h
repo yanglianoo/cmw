@@ -33,11 +33,11 @@ class ConditionNotifier : public NotifierBase{
         bool Listen(int timeout_ms , ReadableInfo* info) override;
         static const char* Type() { return "contion"; }
     private:
-        bool Init();
-        bool OpenOrCreate();
-        bool OpenOnly();
-        bool Remove();
-        void Reset();
+        bool Init();         
+        bool OpenOrCreate();  //创建共享内存
+        bool OpenOnly();      //打开共享内存
+        bool Remove();        //移除共享内存
+        void Reset();         //重置共享内存
 
         key_t key_ = 0; //标识IPC资源
         void* managed_shm_ = nullptr;

@@ -50,7 +50,6 @@ void ShmReceiver<M>::Enable() {
   if (this->enabled_) {
     return;
   }
-
   dispatcher_->AddListener<M>(
       this->attr_, std::bind(&ShmReceiver<M>::OnNewMessage, this,
                              std::placeholders::_1, std::placeholders::_2));

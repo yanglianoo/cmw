@@ -108,10 +108,12 @@ auto Transport::CreateReceiver(const RoleAttributes& attr,
     std::shared_ptr<Receiver<M>> receiver = nullptr;
 
     RoleAttributes modified_attr = attr;
+    ADEBUG << "Receiver Mode: " << mode;
     switch (mode)
     {
         case OptionalMode::SHM:
             receiver = std::make_shared<ShmReceiver<M>>(modified_attr, msg_listener);
+            break;
         default:
             receiver = std::make_shared<RtpsReceiver<M>>(modified_attr , msg_listener);
             break;

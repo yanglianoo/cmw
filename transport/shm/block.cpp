@@ -17,11 +17,11 @@ Block::~Block() {}
 //对block加上写锁
 bool Block::TryLockForWrite(){
     int32_t rw_lock_free = kRWLockFree;
-    ADEBUG << "lock_num_: " << lock_num_.load();
     if(!lock_num_.compare_exchange_weak(rw_lock_free, kWriteExclusive,
                                        std::memory_order_acq_rel,
                                        std::memory_order_relaxed )){
-            ADEBUG << "lock num: " << lock_num_.load();
+
+            ADEBUG << "lock_num_: " << lock_num_.load();
             return false;
     }
     return true;
@@ -64,11 +64,11 @@ bool Block::TryLockForRead() {
     
 }
 
-//释放读锁
-void Block::ReleaseReadLock() { lock_num_.fetch_add(1); }
+//释放读锁,将lock_num_-1
+void Block::ReleaseReadLock() { lock_num_.fetch_sub(1); }
 
-//释放写锁
-void Block::ReleaseWriteLock() { lock_num_.fetch_sub(1); }
+//释放写锁,将lock_num_+1
+void Block::ReleaseWriteLock() { lock_num_.fetch_add(1); }
 
 
 }

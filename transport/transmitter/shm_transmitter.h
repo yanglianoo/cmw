@@ -61,11 +61,7 @@ void ShmTransmitter<M>::Enable(){
     if(this->enabled_){
         return;
     }
-    
-    ADEBUG << "SegmentFactory::CreateSegment" ;
     segment_ = SegmentFactory::CreateSegment(channel_id_);
-
-    ADEBUG << "NotifierFactory::CreateNotifier" ;
     notifier_ =NotifierFactory::CreateNotifier();
     this->enabled_ = true;
 }
@@ -99,14 +95,13 @@ bool ShmTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info){
     //拿到序列化数据所占内存字节数
     std::size_t msg_size = ds.ByteSize();
     //
-    AINFO << " write block start" ;
     //拿到一块block去写，并对拿到的这块block加上写锁
     if(!segment_->AcquireBlockToWrite(msg_size, &wb)){
         AERROR << "acquire block failed.";
         return false;
     }
 
-    ADEBUG << "block index: " << wb.index;
+   // ADEBUG << "block index: " << wb.index;
     //拷贝序列化后的数据到wb.buf处
     std::memcpy(wb.buf , ds.data(), msg_size);
 
@@ -120,20 +115,20 @@ bool ShmTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info){
     //拷贝spare_id_
     std::memcpy(msg_info_addr + ID_SIZE , msg_info.spare_id().data() , ID_SIZE);
     //拷贝 seq
-    *reinterpret_cast<uint64_t*>(msg_info_addr + ID_SIZE*2) = msg_info.seq_num() ;
-
+    *reinterpret_cast<uint64_t*>(msg_info_addr + ID_SIZE*2) = msg_info.seq_num();
 
     wb.block->set_msg_info_size(ID_SIZE*2 +sizeof(uint64_t));
 
     //释放此block的写锁
     segment_->ReleaseWrittenBlock(wb);
 
+    //新建一个ReadableInfo
     ReadableInfo readable_info(host_id_, wb.index , channel_id_);
 
     ADEBUG << "Writing sharedmem message: "
          << common::GlobalData::GetChannelById(channel_id_)
          << " to block: " << wb.index;
-    //通知接收数据的进程处理数据
+    //通知接收数据的进程处理数据,发送ReadableInfo
     return notifier_->Notify(readable_info);
 
 }
