@@ -1,6 +1,6 @@
 #include <cmw/transport/shm/block.h>
 #include <iostream>
-
+#include <cmw/common/log.h>
 
 namespace hnu{
 namespace cmw{
@@ -17,10 +17,11 @@ Block::~Block() {}
 //对block加上写锁
 bool Block::TryLockForWrite(){
     int32_t rw_lock_free = kRWLockFree;
+    ADEBUG << "lock_num_: " << lock_num_.load();
     if(!lock_num_.compare_exchange_weak(rw_lock_free, kWriteExclusive,
                                        std::memory_order_acq_rel,
                                        std::memory_order_relaxed )){
-            std::cout << "lock num: " << lock_num_.load() << std::endl;
+            ADEBUG << "lock num: " << lock_num_.load();
             return false;
     }
     return true;
@@ -32,7 +33,7 @@ bool Block::TryLockForRead() {
     int32_t lock_num  = lock_num_.load();
     if (lock_num < kRWLockFree) {
         //如果有其他线程正在写，则直接return，写的优先级比读高
-        std::cout << "block is being written" << std::endl;
+        AINFO << "block is being written";
         return false;
     }
     int32_t try_times = 0;
@@ -45,7 +46,7 @@ bool Block::TryLockForRead() {
         ++try_times;
         //如果循环五次还没拿到读锁，则return
         if(try_times == kMaxTryLockTimes){
-            std::cout << "fail to add read lock num, curr num: " << lock_num << std::endl;
+            AINFO << "fail to add read lock num, curr num: " << lock_num;
             return false;
         }
  
@@ -54,7 +55,7 @@ bool Block::TryLockForRead() {
 
         if(lock_num < kRWLockFree){
             //如果此时另外一个线程在写，直接跳出循环，不允许读
-            std::cout << "block is being written" << std::endl;
+            AINFO << "block is being written" ;
             return false;
         }
     }

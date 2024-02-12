@@ -4,6 +4,7 @@
 #include <cmw/transport/shm/multicast_notifier.h>
 #include <string>
 #include <cmw/common/global_data.h>
+#include <cmw/common/log.h>
 
 namespace hnu{
 namespace cmw{
@@ -22,7 +23,7 @@ auto NotifierFactory::CreateNotifier() -> NotifierPtr{
         return CreateConditionNotifier();
     }
 
-    std::cout << "unknown notifier, we use default notifier: " << notifier_type << std::endl;
+    AINFO << "unknown notifier, we use default notifier: " << notifier_type;
     return CreateConditionNotifier();
 }
 

@@ -79,7 +79,7 @@ void TEST_ChangeMsg()
     change_msg.role_type = ROLE_WRITER;
     change_msg.role_attr = attr;
 
-    auto transmitter = Transport::Instance()->CreateTransmitter<ChangeMsg>(attr);
+    auto transmitter = Transport::Instance()->CreateTransmitter<ChangeMsg>(attr,OptionalMode::SHM);
 
     std::shared_ptr<ChangeMsg> msg_ptr = std::make_shared<ChangeMsg>(change_msg);
   
@@ -99,6 +99,7 @@ void TEST_ChangeMsg()
 }
 int main()
 {
+    Logger_Init("writer.log");
     TEST_GLOBAL_DATA();
     //TEST_MUTILISTENER();
     TEST_ChangeMsg();

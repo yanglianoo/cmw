@@ -61,8 +61,11 @@ void ShmTransmitter<M>::Enable(){
     if(this->enabled_){
         return;
     }
-
+    
+    ADEBUG << "SegmentFactory::CreateSegment" ;
     segment_ = SegmentFactory::CreateSegment(channel_id_);
+
+    ADEBUG << "NotifierFactory::CreateNotifier" ;
     notifier_ =NotifierFactory::CreateNotifier();
     this->enabled_ = true;
 }
@@ -95,7 +98,8 @@ bool ShmTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info){
     ds << msg;
     //拿到序列化数据所占内存字节数
     std::size_t msg_size = ds.ByteSize();
-
+    //
+    AINFO << " write block start" ;
     //拿到一块block去写，并对拿到的这块block加上写锁
     if(!segment_->AcquireBlockToWrite(msg_size, &wb)){
         AERROR << "acquire block failed.";

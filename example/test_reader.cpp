@@ -65,13 +65,14 @@ void TEST_ChangeMsg()
                         std::cout<<"time: " << message->timestamp << "operate_type:"  << message->operate_type << "seq:" << info.seq_num() << std::endl;
                         
                        };
-    auto rtps1 =Transport::Instance()->CreateReceiver<ChangeMsg>(attr,listener1);
+    auto rtps1 =Transport::Instance()->CreateReceiver<ChangeMsg>(attr,listener1,OptionalMode::SHM);
     printf("Press Enter to stop the Reader.\n");
     std::cin.ignore();
 }   
 
 int main()
 {
+    Logger_Init("reader.log");
     TEST_ChangeMsg();
     //TEST_MUTILISTENER();
     return 0;

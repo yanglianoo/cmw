@@ -4,6 +4,7 @@
 #include <string.h>
 #include <thread>
 #include <cmw/common/util.h>
+#include <cmw/common/log.h>
 namespace hnu{
 namespace cmw{
 namespace transport{
@@ -12,17 +13,17 @@ using common::Hash;
 
 ConditionNotifier::ConditionNotifier(){
     key_ = static_cast<key_t>(Hash("/hnu/cmw/transport/shm/notifier"));
-    std::cout<< "condition notifier key: " << key_ << std::endl;
+    ADEBUG<< "condition notifier key: " << key_ ;
     shm_size_ = sizeof(Indicator);
 
     if(!Init()){
-        std::cout << "fail to init condition notifier." << std::endl;
+        AERROR << "fail to init condition notifier." ;
         is_shutdown_.store(true);
         return;
     }
 
     next_seq_ = indicator_->next_seq.load();
-    std::cout << "next_seq: " << next_seq_<< std::endl;
+    ADEBUG << "next_seq: " << next_seq_;
 }
 
 ConditionNotifier::~ConditionNotifier() {Shutdown();}
@@ -38,7 +39,7 @@ void ConditionNotifier::Shutdown( ){
 
 bool ConditionNotifier::Notify(const ReadableInfo& info){
     if(is_shutdown_.load()){
-        std::cout << "notifier is shutdown." << std::endl;
+        ADEBUG << "notifier is shutdown.";
         return false;
     }
     //先取到next_seq，再对next_seq+1
@@ -54,12 +55,12 @@ bool ConditionNotifier::Notify(const ReadableInfo& info){
 
 bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
     if(info == nullptr){
-        std::cout << "info nullptr" << std::endl;
+        AERROR << "info nullptr" ;
         return false;
     }
 
     if(is_shutdown_.load()){
-        std::cout << "notifier is shutdown." << std::endl;
+        ADEBUG << "notifier is shutdown." ;
     }
 
     int timeout_us = timeout_ms * 1000;
@@ -77,7 +78,7 @@ bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
                 ++next_seq_;
                 return true;
             } else {
-                std::cout << "seq[" << next_seq_ << "] is writing, can not read now." << std::endl;
+                ADEBUG << "seq[" << next_seq_ << "] is writing, can not read now.";
             }
         }
 
@@ -108,12 +109,12 @@ bool ConditionNotifier::OpenOrCreate(){
         }
 
         if(EINVAL == errno){
-            std::cout << "need larger space, recreate."<<std::endl;
+            AINFO << "need larger space, recreate.";
             Reset();
             Remove();
             ++retry;
         } else if( EEXIST == errno){
-            std::cout << "shm already exist, open only." <<std::endl;
+            ADEBUG << "shm already exist, open only.";
             return OpenOnly();
         } else {
             break;
@@ -121,14 +122,14 @@ bool ConditionNotifier::OpenOrCreate(){
     }
 
     if(shmid == -1){
-            std::cout << "create shm failed, error code: " << strerror(errno);
+            AERROR << "create shm failed, error code: " << strerror(errno);
             return false;
     }
 
     managed_shm_ = shmat(shmid, nullptr ,0);
 
     if(managed_shm_ == reinterpret_cast<void*>(-1)){
-        std::cout << "attach shm failed.";
+        AERROR << "attach shm failed.";
         shmctl(shmid, IPC_RMID, 0);
         return false;
     }
@@ -136,42 +137,43 @@ bool ConditionNotifier::OpenOrCreate(){
     indicator_ = new (managed_shm_) Indicator();
 
     if(indicator_ == nullptr){
-        std::cout << "create indicator failed." << std::endl;
+        AERROR << "create indicator failed." ;
         shmdt(managed_shm_);
         managed_shm_ = nullptr;
         shmctl(shmid, IPC_RMID, 0);
         return false;
     }
 
-    std::cout  << "open or create true." << std::endl;
+    ADEBUG  << "open or create true.";
     return true;
     
 }
 
 bool ConditionNotifier::OpenOnly(){
+    
     int shmid = shmget(key_, 0 , 0644);
-    if(shmid != -1){
-        std::cout << "get shm failed, error: " << strerror(errno) << std::endl;
+    if(shmid == -1){
+        AERROR << "get shm failed, error: " << strerror(errno);
         return false; 
     }
 
     //映射共享内存
     managed_shm_ = shmat(shmid, nullptr , 0);
     if(managed_shm_ == reinterpret_cast<void*>(-1)){
-        std::cout << "attach shm failed.";
+        AERROR << "attach shm failed.";
         shmctl(shmid, IPC_RMID, 0);
         return false;
     }
 
     indicator_ = reinterpret_cast<Indicator*>(managed_shm_);
     if(indicator_ == nullptr){
-        std::cout << "get indicator failed." << std::endl;
+        AERROR << "get indicator failed." ;
         shmdt(managed_shm_);
         managed_shm_ = nullptr;
         return false;
     }
 
-    std::cout << "Open true" << std::endl;
+    ADEBUG << "Open true" ;
 
     return true;
 
@@ -183,11 +185,11 @@ bool ConditionNotifier::OpenOnly(){
 bool ConditionNotifier::Remove(){
     int shmid = shmget(key_, 0 , 0644);
     if(shmid == -1 || shmctl(shmid, IPC_RMID,0) == -1){
-        std::cout << "remove shm failed, error code: " << strerror(errno) << std::endl;
+        AERROR<< "remove shm failed, error code: " << strerror(errno) ;
         return false;
     }
 
-    std::cout << "remove success." << std::endl;
+    ADEBUG<< "remove success.";
     return true;
 }
 

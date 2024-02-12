@@ -86,8 +86,10 @@ auto Transport::CreateTransmitter(const RoleAttributes& attr,
     RETURN_VAL_IF_NULL(transmitter, nullptr);
 
     if( mode != OptionalMode::HYBRID){
+        ADEBUG << "transmitter Enable";
         transmitter->Enable();
     }
+    AINFO << "CreateTransmitter Sucess";
     return transmitter;
 }
 

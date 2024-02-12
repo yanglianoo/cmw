@@ -19,7 +19,7 @@ Segment::Segment(uint64_t channel_id)
 bool Segment::AcquireBlockToWrite(std::size_t msg_size, WritableBlock* writable_block){
     RETURN_VAL_IF_NULL(writable_block ,false);
     if(!init_ && !OpenOrCreate()){
-        std::cout << "create shm failed, can't write now." << std::endl;
+        AERROR << "create shm failed, can't write now.";
         return false;
     }
 
@@ -30,14 +30,14 @@ bool Segment::AcquireBlockToWrite(std::size_t msg_size, WritableBlock* writable_
 
     //如果msg_size 超过默认的 size，则销毁之前创建的共享内存，重新创建一块更大的内存
     if(msg_size > conf_.ceiling_msg_size()){
-       std::cout<< "msg_size: " << msg_size
+       AERROR<< "msg_size: " << msg_size
                 << " larger than current shm_buffer_size: "
-                << conf_.ceiling_msg_size() << " , need recreate." << std::endl;
+                << conf_.ceiling_msg_size() << " , need recreate.";
                 result = Recreate(msg_size);
     }
 
     if(!result){
-        std::cout << "segment update failed." << std::endl;
+        AERROR << "segment update failed.";
         return false;
     }
 
@@ -115,11 +115,11 @@ bool Segment::Destroy(){
     }
     catch(...)
     {
-        std::cout << "exception." << std::endl;
+        AERROR << "exception.";
         return false;
     }
 
-    std::cout << "destroy." << std::endl;
+    ADEBUG<< "destroy." ;
     return true;
     
 }
@@ -127,9 +127,9 @@ bool Segment::Destroy(){
 
 bool Segment::Remap(){
     init_ = false;
-    std::cout << "before reset." << "\n";
+    ADEBUG << "before reset.";
     Reset();
-    std::cout << "after reset." << "\n";
+    ADEBUG<< "after reset.";
     return OpenOnly();
 }
 
@@ -148,6 +148,7 @@ uint32_t Segment::GetNextWritableBlockIndex(){
     {
         //返回seq，并将seq加一
         uint32_t try_idx = state_->FetchAddSeq(1) % block_num;
+        ADEBUG << "try_idx: " << try_idx;
         //为blocks_[try_idx] 这块内存加上写锁
         if(blocks_[try_idx].TryLockForWrite()){
             return try_idx;
