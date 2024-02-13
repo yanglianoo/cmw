@@ -49,7 +49,6 @@ void TEST_MUTILISTENER()
 
 void TEST_ChangeMsg()
 {
-    auto dispatcher = RtpsDispatcher::Instance();
     RoleAttributes attr;
     attr.channel_name = "exampleTopic";
     attr.host_name = GlobalData::Instance()->HostName();

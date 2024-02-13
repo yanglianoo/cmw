@@ -44,8 +44,6 @@ public:
     bool AcquireBlockToRead(ReadableBlock* readable_block);
     void ReleaseReadBlock(const ReadableBlock& readable_block);
 
-
-
 protected:
     virtual bool Destroy();
     virtual void Reset() = 0;

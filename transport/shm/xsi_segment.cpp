@@ -95,8 +95,8 @@ bool XsiSegment::OpenOrCreate() {
         state_ = nullptr;
         blocks_ = nullptr;
         {
-        std::lock_guard<std::mutex> _g(block_buf_lock_);
-        block_buf_addrs_.clear();
+            std::lock_guard<std::mutex> _g(block_buf_lock_);
+            block_buf_addrs_.clear();
         }
         shmdt(managed_shm_);
         managed_shm_ = nullptr;

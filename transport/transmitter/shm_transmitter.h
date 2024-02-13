@@ -95,13 +95,14 @@ bool ShmTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info){
     //拿到序列化数据所占内存字节数
     std::size_t msg_size = ds.ByteSize();
     //
+
+    
     //拿到一块block去写，并对拿到的这块block加上写锁
     if(!segment_->AcquireBlockToWrite(msg_size, &wb)){
         AERROR << "acquire block failed.";
         return false;
     }
 
-   // ADEBUG << "block index: " << wb.index;
     //拷贝序列化后的数据到wb.buf处
     std::memcpy(wb.buf , ds.data(), msg_size);
 
