@@ -31,11 +31,12 @@ bool MulticastNotifier::Init(){
         return false;
     }
 
-    memset(&notify_addr_ , 0 , sizeof(notify_addr_));
+    memset(&notify_addr_ , 0 , sizeof(notify_addr_)); //清0
+    //填充套接字信息
     notify_addr_.sin_family = AF_INET;
     notify_addr_.sin_addr.s_addr = inet_addr(mcast_ip.c_str());
     notify_addr_.sin_port = htons(mcast_port);
-
+    //创建一个socket_fd
     listen_fd_ = socket(AF_INET ,SOCK_DGRAM , 0);
     if (listen_fd_ == -1) {
         std::cout << "fail to create listen fd, " << strerror(errno) << std::endl;
@@ -126,10 +127,7 @@ bool MulticastNotifier::Listen(int timeout_ms, ReadableInfo* info){
             std::cout << "fail to poll, " << strerror(errno)<< std::endl;
         }
     }
-
-    
     return false;
-
 }
 
 

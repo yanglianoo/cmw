@@ -12,7 +12,7 @@
 
 - 在发送方通过`Transport`的`CreateTransmiter`函数可以创建两种类型的`Transmitter`：基于`FastRtps`的和基于`Shm`的，通过`Transmitter`的`Transmit`函数就可以将`Message`消息发送出去
 - `Message`为自定义的消息数据类型，通过`cmw`中提供的`serialize`序列化库就可以将自定义的数据类型序列化成一段字节数据流
-- 对于`RtpsTransmitter`，会将`Message`序列化成`string`类型的数据，然后传递给`FastRtps`的`writer`发送出去；对于`ShmTransmitter`会将`Message`存储在一个名为`ReadableBlock`的内存块中，然后通过`Shm`的方式去拿到这个`ReadableBlock`共享内存块，从而获取`Message`
+- 对于`RtpsTransmitter`，会将`Message`序列化成`string`类型的数据，然后传递给`FastRtps`的`writer`发送出去；对于`ShmTransmitter`会将`Message`存储在一个名为`WritableBlock`的内存块中，然后通过`Shm`的方式去拿到这个`ReadableBlock`共享内存块，从而获取`Message`
 
 **接收方**：
 
@@ -126,9 +126,17 @@
 - 对于同主机的不同进程来说，就可以采用共享内存的方式来实现高效的通信
 - 对于不同主机间的进程就只有使用`RTPS`来通过网络进行数据传输了
 
-![img](image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2FyaWVzanpq,size_16,color_FFFFFF,t_70#pic_center.png)
+![img](image/watermark.png)
 
 ### 2.1 FastRtps通信
+
+关于`FastRtps`的通信方式以及逻辑，请参考如下的文章：
+
+> [DDS与FastRTPS（一）-阿里云开发者社区 (aliyun.com)](https://developer.aliyun.com/article/1134960)
+>
+> [DDS与FastRTPS（二）-阿里云开发者社区 (aliyun.com)](https://developer.aliyun.com/article/1134961)
+
+去过一遍官方提供的`example`就能明白是如何工作的了
 
 ### 2.2 Shm通信
 
@@ -138,7 +146,7 @@
 
 ![cmw共享内存通信](image/cmw共享内存通信.png)
 
-- 在发送方`ShmTransmitter`会根据`channel_id`创建一个`Segment`，这个`Segment`就是读属于`channel_id`的一片共享内存，写数据就是去写这片内存；
+- 在发送方`ShmTransmitter`会根据`channel_id`创建一个`Segment`，这个`Segment`就是独属于`channel_id`的一片共享内存，写数据就是去写这片内存；
 - 接收方的`ShmDispatcher`是一个单例，当`Receiver`想要接收某个`channel_id`来的数据，会先向`ShmDispathcer`注册，而`ShmDispathcer`内部有一个`SegmentMap：<channel_id, Segment>`，通过索引`channel_id`就能找到发送进程创建的对应的`Segment`，从而拿到数据
 
 #### 2.2.1 消息内存结构
@@ -231,15 +239,205 @@
 
 #### 2.2.2 消息通知机制
 
+当发送方写完数据后，需要通知接收方表明有新的数据了，接收方会一直轮询监听此通知，当收到有新的数据发送了就会去处理数据；机制和上面通过共享内存发送数据的模式相似。在`cmw`中实现了两种通知机制，一种是基于共享内存的，一种是基于网络的。
 
+<img src="image/image-20240214162034292.png" alt="image-20240214162034292" style="zoom:80%;" />
+
+**消息通知结构体**：
+
+- 发送方通知接收方的数据结构定义为`ReadableInfo`，由`channel_id`、`host_id`、`block_index`三部分组成，在发送方写完数据后会填充一个`ReadableInfo`，然后发送出去
+- 接收方会先比对发送方传来的`host_id`，用于判断发送方和接收方是否在同一主机
+- 发送方需要告诉接收方写数据的`channel_id`是多少，这样接收方就能根据此`channel_id`找到对应的`Segment`
+- 接收方再找到`channel_id`对应的`Segment`后，再根据`block_index`去索引就能打到对应的`buf`了
+
+**基于共享内存的消息通知**：`cmw/transport/shm/condition_notifier`
+
+- `ConditionNotifier`是一个单例，因此无论发送方由多少个`Transmitter`，都只会通过这一个`Notifier`来通知
+
+- `ConditionNotifier`会开辟一片共享内存，此共享内存的`key`是确定的，因此即使在同一台主机上有多个进程，只要第一个进程开辟了名为`key_`的共享内存，其余进程只需要打开然后映射就可使用了，所以这个`Indicator`是当前主机上所有进程共享的
+
+  ```c++
+  key_ = static_cast<key_t>(Hash("/hnu/cmw/transport/shm/notifier"));
+  ```
+
+- 此内存结构构成如下：
+
+  ```c++
+  const uint32_t kBufLength = 4096;
+  struct Indicator{
+          std::atomic<uint64_t> next_seq = {0};
+          ReadableInfo infos[kBufLength];
+          uint64_t seqs[kBufLength] = {0};
+      };
+  ```
+
+  ![image-20240214164245413](image/image-20240214164245413.png)
+
+- 通知更新：
+
+  ```c++
+  bool ConditionNotifier::Notify(const ReadableInfo& info){
+      if(is_shutdown_.load()){
+          ADEBUG << "notifier is shutdown.";
+          return false;
+      }
+      //先取到next_seq，再对next_seq+1
+      uint64_t seq = indicator_->next_seq.fetch_add(1);
+  
+      //填充要通知的信息
+      uint64_t idx = seq % kBufLength;  
+      indicator_->infos[idx] = info;
+      indicator_->seqs[idx] = seq;
+  
+      return true;
+  }
+  ```
+
+- 检查更新
+
+  ```c++
+  bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
+      if(info == nullptr){
+          AERROR << "info nullptr" ;
+          return false;
+      }
+      if(is_shutdown_.load()){
+          ADEBUG << "notifier is shutdown." ;
+      }
+      int timeout_us = timeout_ms * 1000; //超时时间
+      while (!is_shutdown_.load())
+      {   
+          uint64_t seq = indicator_->next_seq.load();
+          //如果有其他进程 执行了Notify，则 seq ！= next_seq_ ,有可能大于有可能小于，因为是个队列，说明有新的info
+          if(seq != next_seq_){
+              auto idx = next_seq_ % kBufLength;     
+              auto actual_seq = indicator_->seqs[idx];   //拿到写入了数据的info的索引
+              //如果写入数据的actual_seq > next_seq_ ,就取出写入的Info
+              if(actual_seq >= next_seq_){
+                  next_seq_ = actual_seq;
+                  *info = indicator_->infos[idx]; //取出info
+                  ++next_seq_;   //将本地next_seq_ + 1
+                  return true;
+              } else {
+                  ADEBUG << "seq[" << next_seq_ << "] is writing, can not read now.";
+              }
+          }
+          if(timeout_us > 0){
+              std::this_thread::sleep_for(std::chrono::microseconds(50));
+              timeout_us -= 50;
+          } else {
+              return false;
+          }
+      }
+      return false;
+  }
+  ```
+
+  所有进程的`Transmitter`和`Dispatcher`共用一个`Notifier`的`Indicator`（存储在共享内存上）
+
+  - `Indicator`记录最新被写入`Block`的信息,（ReadableInfo）下标`next_seq`，及一个固定长度的`ReadableInfo`数组，和记录`ReadableInfo`下标的数组
+  - `Transmitter`通过`Notifier::Notify`更新`Indicator`的`next_seq`，同时记录此次的`ReadableInfo`和其下标
+  - `Dispatcher`通过`Notifier::Listen`获取更新，每个进程的`Notifier`本地有一个`next_seq_`，通过对比共享内存`Indicator`的`next_seq`判断是否有新数据，不相等时使用本地的`next_seq_`获取对应的`ReadableInfo`去访问对应的`Segment`
+  - 通知机制相当于一个广播机制，写完一个`ReadableInfo`后，所有的读的进程都会去读取此次写入，然后更新读进程本地的`next_seq_`，下一步读进程会去根据`Dispathcer`的`SegmentMap：<channel_id, Segment>`去比对自身是否含有此次`ReadableInfo`中包含的`channel_id`对应的`Segment`，如果没有就继续等待，有则去执行回调函数
+
+**基于组播网络的消息通知**：`cmw/transport/shm/multicast_notifier`
+
+- 基于网络的方式会比较简单，发送端会发送一个`ReadableInfo`到多播组中，接收端会会去监听此`listen_fd_`上的输入事件，
+
+  ```c++
+  bool MulticastNotifier::Listen(int timeout_ms, ReadableInfo* info){
+      if(is_shutdown_.load()){
+          return false;
+      }
+      if(info == nullptr){
+          std::cout << "info nullptr" << std::endl;
+          return false;
+      }
+      struct pollfd fds;
+      fds.fd = listen_fd_;
+      fds.events = POLLIN;
+      int ready_num = poll(&fds, 1 , timeout_ms); //使用poll等待监听，如果超时，则返回
+      if(ready_num > 0){
+          char buf[32] = {0};
+          //拿到广播的ReadaleInfo的数据
+          ssize_t nbytes = recvfrom(listen_fd_, buf , 32 , 0 , nullptr, nullptr);
+          if(nbytes == -1){
+              std::cout << "fail to recvfrom, " << strerror(errno) << std::endl;
+              return false;
+          }
+          //返回反序列化后的数据
+          return info->DeserializeFrom(buf, nbytes);
+      } else if(ready_num == 0) {
+          std::cout << "timeout, no readableinfo." << std::endl;
+      } else {
+          if(errno == EINTR){
+              std::cout << "poll was interrupted." << std::endl;
+          } else {
+              std::cout << "fail to poll, " << strerror(errno)<< std::endl;
+          }
+      }
+      return false;
+  }
+  ```
 
 ## 3. 发送方的设计
 
 ### 3.1 基于FastRtps的Transmitter
 
-### 3.2 基于Shm的Receiver
+<img src="image/cmw发布端软件架构.png" alt="cmw发布端软件架构"  />
+
+- `GlobaData`是一个全局单例类，通过这个类可以拿到当前进程的`ID`、`HostName`、`HostIp`等信息。在`GlobaData`中有一个`map: channel_id_map`，此`map`以`channel_name`为`key`，`channel_name`哈希值为`value`
+
+- 根据上面的通信架构可知，发送端发送数据的基本单元是`Transmitter`，`Transmitter`的创建是通过`Transport`这个单例类来完成的，一个进程中可以存在多个`Transmitter`向不同的`channel`发送信息，因此在创建`Transmitter`前需要填充此`Transmitter`的配置信息，每个`Transmitter`都对应了一个写数据的通道`channel_name`，创建一个`channel`就可以向`GlobaData`注册此`channel`，这样通过访问`channel_id_map`就可以知道此进程中有哪些`channel`存在了，创建`Transmitter`前配置信息填充如下：
+
+  ```c++
+      RoleAttributes attr;
+      attr.channel_name = "exampleTopic";  
+      attr.host_name = GlobalData::Instance()->HostName();
+      attr.host_ip = GlobalData::Instance()->HostIp();
+      attr.process_id =  GlobalData::Instance()->ProcessId();
+      attr.channel_id = GlobalData::Instance()->RegisterChannel(attr.channel_name);
+      QosProfile qos;
+      attr.qos_profile = qos;
+  ```
+
+- `cmw`的`Participant`是对`RtpsParticipant`的抽象，在`Rtps`中一个`RtpsParticipant`可以创建多个`RtpsWriter`和多个`RtpsReader`，因此一个进程只需要持有一个`RtpsParticipant`就足够了，在`Tranport`中有一个`Participant`的指针，`Tranport`会在构造时去调用`CreateParticipant( )`创建一个`Particpant`
+
+- 一个`RtpsTransmitter`想要发送数据，它需要持有一个`RtpsWriter`，`RtpsWriter`将数据写入`WriterHistory`中，就可将数据发送出去。
+
+- `CreateTransmitter()`这个函数会先创建一个`RtpsTransmitter`的实例，然后调用`RtpsTransmitter`的`Enable`函数来创建`Rtpswriter`、`WriterHistory`，`Transport`中创建的`Particpant`会在调用`CreateTransmitter()`传入，用于`Enable`创建`Rtpswriter`、`WriterHistory`
+
+- `RtpsTransmitter`是一个模板类，模板代表了要传递的消息的类型，比如我现在想要发送`ChangeMsg`类型的数据,:
+
+  ```c++
+  auto transmitter = Transport::Instance()->CreateTransmitter<ChangeMsg>(attr);
+  ```
+
+- 创建完毕`transmitter`后就可以调用`Transmit`函数发送数据了：
+
+  ```c++
+  ChangeMsg change_msg;
+  change_msg.timestamp = Time::Now().ToNanosecond();
+  change_msg.change_type = CHANGE_NODE;
+  change_msg.operate_type = OPT_JOIN;
+  change_msg.role_type = ROLE_WRITER;
+  change_msg.role_attr = attr;
+  std::shared_ptr<ChangeMsg> msg_ptr = std::make_shared<ChangeMsg>(change_msg);
+  
+  MessageInfo msg_info;
+  msg_info.set_seq_num(1);
+  transmitter->Transmit(msg_ptr, msg_info);
+  ```
+
+- 在`Transmit`内部会对`ChangeMsg`数据进行序列化，变成`string`类型的一段字符串数据流，然后通过`RtpsWriter`发送出去
+
+### 3.2 基于Shm的Transmitter
+
+
 
 ## 4.接收方的设计
 
-### 4.1 `ListenerHandler`
+### 4.1 基于FastRtps的Receiver
+
+### ![cmw订阅端软件架构](image/cmw订阅端软件架构.png)
 

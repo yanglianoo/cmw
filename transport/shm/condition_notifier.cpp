@@ -72,7 +72,7 @@ bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
         if(seq != next_seq_){
             auto idx = next_seq_ % kBufLength;
             auto actual_seq = indicator_->seqs[idx];
-            //感觉不会出现大于的情况，只有等于
+            //
             if(actual_seq >= next_seq_){
                 next_seq_ = actual_seq;
                 *info = indicator_->infos[idx];
@@ -91,7 +91,6 @@ bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
         }
     }
 
-    ADEBUG << "debug listen";
     return false;
     
 }

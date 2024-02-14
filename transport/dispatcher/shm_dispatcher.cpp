@@ -105,12 +105,15 @@ void ShmDispatcher::ThreadFunc(){
 
         {
             ReadLockGuard<AtomicRWLock> lg(segments_lock_);
+            //先判断当前进程的segments_是否包含channel_id对应的segments；
             if(segments_.count(channel_id) == 0){
                 continue;
             }
+            //保存之前的index
             if(previous_indexs_.count(channel_id) == 0){
                 previous_indexs_[channel_id] == UINT32_MAX;
             }
+            //拿到上一次的索引
             uint32_t& previous_index = previous_indexs_[channel_id];
             if(block_index != 0 && previous_index != UINT32_MAX){
                 if (block_index == previous_index) {
@@ -124,6 +127,7 @@ void ShmDispatcher::ThreadFunc(){
                             << ", now: " << block_index;
                     }
             } 
+            //更新上一次的索引
             previous_index = block_index;
             ReadMessage(channel_id, block_index);
         }
