@@ -136,7 +136,7 @@
 >
 > [DDS与FastRTPS（二）-阿里云开发者社区 (aliyun.com)](https://developer.aliyun.com/article/1134961)
 
-去过一遍官方提供的`example`就能明白是如何工作的了
+去过一遍管饭提供的`example`就能明白是如何工作的了
 
 ### 2.2 Shm通信
 
@@ -433,7 +433,84 @@
 
 ### 3.2 基于Shm的Transmitter
 
+基于`Shm`的`Transmitter`和基于`FastRtps`的`Transmitter`在设计上基本相似，区别就在于将底层的通信机制换成了`shm`，
 
+![cmw发布端软件架构SHM](image/cmw发布端软件架构SHM.png)
+
+- 和创建`RtpsTransmitter`一样，通过`Transport`的`CreateTransmitter`函数来创建一个`ShmTransmitter`，此函数会先创建一个`ShmTransmitter`的实例，然后调用`Enable`函数来创建一个`Segment`，一个`Notifiler`
+
+  ```c++
+   //填充配置信息
+   RoleAttributes attr;
+   attr.channel_name = "exampleTopic";
+   attr.host_name = GlobalData::Instance()->HostName();
+   attr.host_ip = GlobalData::Instance()->HostIp();
+   attr.process_id =  GlobalData::Instance()->ProcessId();
+   attr.channel_id = GlobalData::Instance()->RegisterChannel(attr.channel_name);
+  //创建`ShmTransmitter`
+   auto transmitter = Transport::Instance()->CreateTransmitter<ChangeMsg>(attr,OptionalMode::SHM);
+  ```
+
+- 发送数据就直接调用`Transmit`函数即可
+
+  ```c++
+  ChangeMsg change_msg;
+  change_msg.timestamp = Time::Now().ToNanosecond();
+  change_msg.change_type = CHANGE_NODE;
+  change_msg.operate_type = OPT_JOIN;
+  change_msg.role_type = ROLE_WRITER;
+  change_msg.role_attr = attr;
+  std::shared_ptr<ChangeMsg> msg_ptr = std::make_shared<ChangeMsg>(change_msg);
+  
+  MessageInfo msg_info;
+  msg_info.set_seq_num(1);
+  transmitter->Transmit(msg_ptr, msg_info)
+  ```
+
+- 在`ShmTransmitter`中的`Transmit`函数由于使用的是共享内存的方式，因此会有一些不同。`Transmit`内部会新建一个可写的`WritableBlock`，然后在`Segment`中去拿到一对可写的`Block`和`buffer`的地址赋值给新创建的这个`WritableBlock`，然后将`Message`和`MessageInfo`序列化后拷贝到`buffer`处，填充`Block`的相关信息
+
+  ```c++
+     //新建一个WritableBlock
+     WritableBlock wb;
+      //序列化成字符串
+      serialize::DataStream ds; 
+      ds << msg;
+      //拿到序列化数据所占内存字节数
+      std::size_t msg_size = ds.ByteSize();
+      //拿到一块block去写，并对拿到的这块block加上写锁
+      if(!segment_->AcquireBlockToWrite(msg_size, &wb)){
+          AERROR << "acquire block failed.";
+          return false;
+      }
+      //拷贝序列化后的数据到wb.buf处
+      std::memcpy(wb.buf , ds.data(), msg_size);
+  	//设置msg_size
+      wb.block->set_msg_size(msg_size);
+  	//拿到msg_info的写入地址
+      char* msg_info_addr = reinterpret_cast<char*>(wb.buf) + msg_size;
+      //拷贝sender_id
+      std::memcpy(msg_info_addr, msg_info.sender_id().data() ,ID_SIZE);
+      //拷贝spare_id_
+      std::memcpy(msg_info_addr + ID_SIZE , msg_info.spare_id().data() , ID_SIZE);
+      //拷贝 seq
+      *reinterpret_cast<uint64_t*>(msg_info_addr + ID_SIZE*2) = msg_info.seq_num();
+  	//设置msg_info 的size
+      wb.block->set_msg_info_size(ID_SIZE*2 +sizeof(uint64_t));
+      //释放此block的写锁
+      segment_->ReleaseWrittenBlock(wb);
+  ```
+
+- 在完成数据的写入后就可以通过`notifier_`的`Notify`函数来通知接收进程处理数据，这里就是往所有进程共有的`Indicator`上写入当前进程的`ReadableInfo`信息
+
+  ```c++
+      //新建一个ReadableInfo
+      ReadableInfo readable_info(host_id_, wb.index , channel_id_);
+      ADEBUG << "Writing sharedmem message: "
+           << common::GlobalData::GetChannelById(channel_id_)
+           << " to block: " << wb.index;
+      //通知接收数据的进程处理数据,发送ReadableInfo
+      return notifier_->Notify(readable_info);
+  ```
 
 ## 4.接收方的设计
 
@@ -441,3 +518,190 @@
 
 ### ![cmw订阅端软件架构](image/cmw订阅端软件架构.png)
 
+- 先来看一下如何创建一个接收者，和发送者类似，先为接收者填充好相关配置信息，最重要的参数就是需要读取数据的通道的名字`channel_name`，和发送端不同，接收端在接收到数据时需要去处理消息，因此需要绑定一个回调函数。在设置好配置信息和回调函数后就可以调用`Transport`全局单例类中的`CreateReceiver`函数来创建一个`Receiver`了，`Receiver`有两种类型，一种是基于`FastRtps`的，一种是基于`Shm`的
+
+  ```c++
+      //填充receiver的配置信息
+  	RoleAttributes attr;
+      attr.channel_name = "exampleTopic";
+      attr.host_name = GlobalData::Instance()->HostName();
+      attr.host_ip = GlobalData::Instance()->HostIp();
+      attr.process_id =  GlobalData::Instance()->ProcessId();
+      attr.channel_id = GlobalData::Instance()->RegisterChannel(attr.channel_name);
+      QosProfile qos;
+      attr.qos_profile = qos;
+  	//为receiver绑定回调函数
+      auto listener1 = [](const std::shared_ptr<ChangeMsg>& message ,
+                         const MessageInfo& info, const RoleAttributes&){
+      std::cout<<"time: " << message->timestamp << "operate_type:"  << message->operate_type << "seq:" << info.seq_num() << 		std::endl;      };
+  	//创建RtpsReceiver
+      auto rtps_receiver =Transport::Instance()->CreateReceiver<ChangeMsg>(attr,listener1);
+  ```
+
+- 回调的类型为一个`std::function`类型，返回值为空，第一个参数为数据指针指向从发送者发送的数据，第二个参数为`MessageInfo`，也是发送者发送的，第三个参数为自身`Receiver`的配置信息
+
+  ```c++
+   using MessagePtr = std::shared_ptr<M>;
+   using MessageListener = std::function<void(
+          const MessagePtr&, const MessageInfo&, const RoleAttributes&)>;
+  ```
+
+- 上面这个在创建时传入的`MessageListener`会在`Receiver`中的`OnNewMessage`函数中调用：
+
+  ```c++
+  template <typename M>
+  void Receiver<M>::OnNewMessage(const MessagePtr& msg,
+                                 const MessageInfo& msg_info) {
+    if (msg_listener_ != nullptr) {
+      msg_listener_(msg, msg_info, attr_);
+    }
+  }
+  ```
+
+- `Receiver`接收数据并去执行回调的行为是通过一个全局的单例`Dispatcher`来实现的，每个`Receiver`都会持有这个`Dispatcher`的全局单例的指针，在`Transport`使用`CreateReceiver`函数来创建一个`Receiver`时会去调用`Receiver`的`Enable`函数，在此函数中会将`OnNewMessage`再次打包用于`Dispatcher`去执行，所以接收数据和执行回调的行为都是`Dispatcher`这个类在控制
+
+  ```c++
+  template <typename M>
+  void RtpsReceiver<M>::Enable(){
+      if(this->enabled_){
+          return;
+      }
+      dispatcher_->AddListener<M>(
+          this->attr_, std::bind(&RtpsReceiver<M>::OnNewMessage , this,
+              std::placeholders::_1, std::placeholders::_2));
+      this->enabled_ = true;
+  }
+  ```
+
+- 对于基于`FastRtps`的`RtpsDispatcher`来说，使用的是`RtpsReader`来读取数据，因此首先在`cmw`中抽象了一个`Reader`的类
+
+  ```c++
+  struct Reader {
+      Reader() : reader(nullptr) , reader_listener(nullptr) {}
+  
+      eprosima::fastrtps::rtps::RTPSReader* reader;
+      eprosima::fastrtps::rtps::ReaderHistory* mp_history;
+      RealistenerPtr reader_listener;
+  };
+  ```
+
+- 一个`RtpsDispatcher`可以持有多个`Reader`来读取不同`channel`上的数据，每个独立的`channel`对应了一个`Reader`，因此在`RtpsDispatcher`有一个`map`专门用来保存所有的`Reader`：
+
+  ```c++
+  std::unordered_map<uint64_t , Reader> readers_;
+  ```
+
+- 此`unordered_map`以`channel_id`为`key`，`channel_id`即为`channel_name`的哈希值，是唯一的，`RtpsDispatcher`中的`AddReader`函数可以通过传入的`Receiver`中的配置信息来创建`Reader`，在创建`Reader`时也需要传入一个回调函数，这个回调函数是`RtpsDispatcher`的`OnMessage`函数，这里借助了`FastRtps`的服务发现与回调机制，在`FastRtps`中，同一`channel`的`RtpsReader`会自动匹配`RtpsWriter`，因此发送方向`channel`中发送数据后，`channel`相匹配的`RtpsReader`会去执行它的回调函数，这里就是会去执行`OnMessage`函数，这里我们先不管`OnMessage`内部是去干了啥
+
+  ```c++
+  
+     //创建一个reader
+      Reader new_reader;
+      //填充reader的配置信息
+      RtpsReaderAttributes reader_attr;
+  
+      auto& qos = self_attr.qos_profile;
+      AttributesFiller::FillInReaderAttr(self_attr.channel_name , qos , &reader_attr);
+      //创建reader的回调函数
+      new_reader.reader_listener = std::make_shared<ReaListener>(
+          std::bind(&RtpsDispatcher::OnMessage, this, std::placeholders::_1,
+                  std::placeholders::_2, std::placeholders::_3),self_attr.channel_name);
+  ```
+
+- 这时再回到`Receiver`的`Enable`函数，调用了`RtpsDispatcher`的`AddListener`函数去添加回调函数
+
+  ```c++
+      dispatcher_->AddListener<M>(
+          this->attr_, std::bind(&RtpsReceiver<M>::OnNewMessage , this,
+              std::placeholders::_1, std::placeholders::_2));
+  ```
+
+  ```c++
+  template <typename MessageT>
+  void RtpsDispatcher::AddListener(const RoleAttributes& self_attr,
+                                   const MessageListener<MessageT>& listener) {
+  
+      auto listener_adapter = [listener](const std::shared_ptr<std::string>& msg_str, 
+                                         const MessageInfo& msg_info){
+              auto msg = std::make_shared<MessageT>();
+              serialize::DataStream ds(*msg_str);
+              ds >> *msg;
+              listener(msg , msg_info);
+      };
+      //调用基类的AddListener来注册回调函数
+      Dispatcher::AddListener<std::string>(self_attr ,listener_adapter);
+      AddReader(self_attr);
+  }
+  ```
+
+- 可以看见此时对回调函数再次包装了一层变成了`listener_adapter`，内部做的操作是将接收方拿到的字符串数据反序列化成对应的`MessageT`类型，然后传递给传入的`listener`去执行，将回调包装完毕后，调用了基类的`AddListener`再添加，然后调用`AddReader`函数新建一个`Reader`。在`Dispatch`基类的`AddListener`函数中涉及到一个名为`ListenerHandler`的类，这个类可以暂时把它理解成一个监听不同`MessageT`类型数据的信号，每个`channel`上的`MessageT`类型不一样即每个独立的`channel`上传递的消息的数据结构不一样。在`Dispatch`基类中有这样一个`map`
+
+  ```c++
+      //保存回调函数的哈希表，key为channel_id，值为此channel对应的ListenerHandler
+      AtomicHashMap<uint64_t, ListenerHandlerBasePtr> msg_listeners_;
+  ```
+
+  此`AtomicHashMap`以`channel_id`为`key`，监听此`channel_id`的数据的信号为`value`，当此`map`的其中一个`channel`上有数据时，就可以通过这张表所引到对应的信号，通过信号机制去通知关注此信号的槽函数，实现回调的执行
+
+- 我们现在再来看`Dispatch`基类的`AddListener`函数，在这个函数中会先判断传入的`channel`有没有对应的`ListenerHandler`，即去`msg_listeners_`这张表里去检查，如果有了就返回这个`hander`就行，如果没有则新建立一个监听此`channel`的`ListenerHandler`，然后调用`ListenerHandler`函数将上面包装好的`listener_adapter`函数当成槽函数传入
+
+  ```c++
+  template <typename MessageT>
+  void Dispatcher::AddListener(const RoleAttributes& self_attr,
+                               const MessageListener<MessageT>& listener){
+      if(is_shutdown_.load()){
+          return ;
+      }
+      //拿到channel_id
+      uint64_t channel_id = self_attr.channel_id;
+      //创建一个新的ListenerHandler
+      std::shared_ptr<ListenerHandler<MessageT>> handler;
+      ListenerHandlerBasePtr* handler_base = nullptr;
+      //如果此channel_id已经有ListenerHandler了
+      if(msg_listeners_.Get(channel_id, &handler_base)){
+          //取出此channel_id对应的ListenerHandler
+          handler = 
+              std::dynamic_pointer_cast<ListenerHandler<MessageT>>(*handler_base);
+              if (handler == nullptr) {
+        AERROR <<  "please ensure that readers with the same channel["
+               << self_attr.channel_name
+               << "] in the same process have the same message type";
+        return;
+               }
+      } else{
+          //说明此channel_id没有对应的ListenerHandler
+          ADEBUG << "new reader for channel:"
+             << GlobalData::GetChannelById(channel_id);
+          //新建一个监听此channel_id的ListenerHandler
+          handler.reset(new ListenerHandler<MessageT>());
+          //建立channel_id 与 ListenerHandler的对应关系，保存到msg_listeners_中
+          msg_listeners_.Set(channel_id, handler);
+      }
+      //为此ListenerHandler连接槽函数，一个id可以绑定多个槽函数
+      handler->Connect(self_attr.id, listener);
+  }
+  ```
+
+- ok，这样饶了一大圈再回到`RtpsDispatcher`的`OnMessage`函数，此函数用于`Reader`监测到自身关注的`channel`上有数据时会去执行的函数，可以看见在此函数内部，会根据`channel_id`去`msg_listeners_`这个`map`中索引到此`channel`对应的`ListenerHandler`，然后通过`Run`函数就能通知绑定此`ListenerHandler`的所有槽函数执行了
+
+  ```c++
+   void RtpsDispatcher::OnMessage(uint64_t channel_id,
+                                 const std::shared_ptr<std::string>& msg_str,
+                                 const MessageInfo& msg_info) {
+      if (is_shutdown_.load()) {
+      return;
+    }     
+  
+    ListenerHandlerBasePtr* handler_base = nullptr;
+    if (msg_listeners_.Get(channel_id, &handler_base)) {
+      auto handler =
+          std::dynamic_pointer_cast<ListenerHandler<std::string>>(*handler_base);
+      //根据信号执行注册的槽函数
+      handler->Run(msg_str, msg_info);
+    }
+  }
+  ```
+
+- 到最后在说一下，`Reader`内部的回调在执行`RtpsDispatcher::OnMessage`函数时会将从发送方拿到的数据一次赋值给此函数的三个参数，这样整个回调流程就走通了
+
+### 4.2 基于FastRtps的Receiver
