@@ -282,7 +282,7 @@ void DataStream::write(const string & value)
     int len = value.size();
     write(len);
     write(value.data(), len);
-}
+} 
 
 void DataStream::write(const Serializable & value)
 {

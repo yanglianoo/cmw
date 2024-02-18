@@ -704,4 +704,6 @@
 
 - 到最后在说一下，`Reader`内部的回调在执行`RtpsDispatcher::OnMessage`函数时会将从发送方拿到的数据一次赋值给此函数的三个参数，这样整个回调流程就走通了
 
-### 4.2 基于FastRtps的Receiver
+### 4.2 基于Shm的Receiver
+
+![cmw订阅端软件架构SHM](image/cmw订阅端软件架构SHM.png)
