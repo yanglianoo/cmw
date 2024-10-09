@@ -11,6 +11,7 @@
 #include <fastrtps/rtps/RTPSDomain.h>
 #include <fastrtps/rtps/attributes/RTPSParticipantAttributes.h>
 #include <fastrtps/rtps/participant/RTPSParticipant.h>
+#include <cmw/common/environment.h>
 
 namespace hnu    {
 namespace cmw   {
@@ -81,8 +82,19 @@ void Participant::CreateFastRtpsParticipant(
 
       loc.kind = LOCATOR_KIND_UDPv4;
 
-      // IP地址设置需要配置
-      IPLocator::setIPv4(loc,"127.0.0.1");
+      // IP地址设置需要配置,通过环境变量设置
+      std::string ip_env("127.0.0.1");
+      const char* ip_val = ::getenv("CMW_IP");
+      if(ip_val != nullptr){
+        ip_env = ip_val;
+        if (ip_env.empty()) {
+          AERROR << "invalid CMW_IP (an empty string)";
+          return;
+        }
+      }
+      ADEBUG << "cmw ip: " << ip_env;
+
+      IPLocator::setIPv4(loc, ip_env);
 
       //单播配置
       PParam.defaultUnicastLocatorList.push_back(loc);

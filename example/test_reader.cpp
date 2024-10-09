@@ -13,7 +13,15 @@ using namespace hnu::cmw::config;
 
 using ReceiverPtr = std::shared_ptr<Receiver<std::string>>;
 
-
+void TEST_GLOBAL_DATA()
+{
+    using namespace hnu::cmw::common;
+    std::cout <<"--------------------------Global_Data Test--------------------------" << std::endl;
+    std::cout <<"HostIP: " << GlobalData::Instance()->HostIp() << std::endl;
+    std::cout <<"HostName: " << GlobalData::Instance()->HostName() << std::endl;
+    std::cout <<"ProcessId: " << GlobalData::Instance()->ProcessId() << std::endl;
+    std::cout <<"ProcessGroup: " << GlobalData::Instance()->ProcessGroup() << std::endl;
+}
 
 void TEST_MUTILISTENER()
 {
@@ -57,14 +65,13 @@ void TEST_ChangeMsg()
     attr.channel_id = GlobalData::Instance()->RegisterChannel(attr.channel_name);
     QosProfile qos;
     attr.qos_profile = qos;
-
     auto listener1 = [](const std::shared_ptr<ChangeMsg>& message ,
                        const MessageInfo& info, const RoleAttributes&){
                         
                         std::cout<<"time: " << message->timestamp << "operate_type:"  << message->operate_type << "seq:" << info.seq_num() << std::endl;
                         
                        };
-    auto rtps1 =Transport::Instance()->CreateReceiver<ChangeMsg>(attr,listener1,OptionalMode::SHM);
+    auto rtps1 =Transport::Instance()->CreateReceiver<ChangeMsg>(attr,listener1);
     printf("Press Enter to stop the Reader.\n");
     std::cin.ignore();
 }   
@@ -72,6 +79,7 @@ void TEST_ChangeMsg()
 int main()
 {
     Logger_Init("reader.log");
+    TEST_GLOBAL_DATA();
     TEST_ChangeMsg();
     //TEST_MUTILISTENER();
     return 0;

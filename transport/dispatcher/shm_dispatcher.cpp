@@ -96,7 +96,8 @@ void ShmDispatcher::ThreadFunc(){
         }
 
         if(readable_info.host_id() != host_id_){
-            ADEBUG << "shm readable info from other host.";
+
+            ADEBUG << "shm readable info from other host." << host_id_ << " " << readable_info.host_id();
             continue;
         }
 

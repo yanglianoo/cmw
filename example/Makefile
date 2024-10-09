@@ -61,6 +61,9 @@ test_subscriber: $(SRCS) test_subscriber.cpp
 test_log: $(SRCS) test_log.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
+test_getenv : test_getenv.cpp	
+	$(CC) -o $@.out $^
+	
 .PHONY:clean
 clean:
 	rm -rf *.out 

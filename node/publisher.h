@@ -110,12 +110,13 @@ void Publisher<MessageT>::JoinTheTopology(){
         &Publisher<MessageT>::OnChannelChange, this , std::placeholders::_1));
     
     const std::string& channel_name = this->role_attr_.channel_name;
-    std::vector<RoleAttributes> subscribers;
-    channel_manager_->GetReadersOfChannel(channel_name , &subscribers);
+    // std::vector<RoleAttributes> subscribers;
+    // channel_manager_->GetReadersOfChannel(channel_name , &subscribers);
 
-    for(auto& subscriber : subscribers){
-        transmitter_->Enable(subscriber);
-    }
+    // for(auto& subscriber : subscribers){
+    //     ADEBUG << "ENABLE";
+    //     transmitter_->Enable(subscriber);
+    // }
 
     //加入拓扑图
     channel_manager_->Join(this->role_attr_, RoleType::ROLE_WRITER);

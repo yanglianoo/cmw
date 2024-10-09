@@ -5,6 +5,7 @@ using namespace hnu::cmw;
 
 int main()
 {
+    Logger_Init("test.log");
     config::RoleAttributes role_attr;
 
     role_attr.channel_name = "/chatter0";
@@ -20,6 +21,7 @@ int main()
     {
        std::shared_ptr<std::string> msg_ptr = std::make_shared<std::string>("hnu cmw designed by timer!" + std::to_string(n));
        publisher.Publish(msg_ptr);
+       std::cout << "Publisher seq: " << n << std::endl;
        std::this_thread::sleep_for(std::chrono::milliseconds(250));
        n++;
     }

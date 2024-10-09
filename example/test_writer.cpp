@@ -39,7 +39,7 @@ void TEST_MUTILISTENER()
     {
 
         msg.set_seq_num(n);
-        std::cout<<"seq: " << n << std::endl;
+        //std::cout<<"seq: " << n << std::endl;
         n++;
         transmitter->Transmit(msg_ptr, msg);
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
@@ -79,7 +79,7 @@ void TEST_ChangeMsg()
     change_msg.role_type = ROLE_WRITER;
     change_msg.role_attr = attr;
 
-    auto transmitter = Transport::Instance()->CreateTransmitter<ChangeMsg>(attr,OptionalMode::SHM);
+    auto transmitter = Transport::Instance()->CreateTransmitter<ChangeMsg>(attr);
 
     std::shared_ptr<ChangeMsg> msg_ptr = std::make_shared<ChangeMsg>(change_msg);
   
