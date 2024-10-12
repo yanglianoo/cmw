@@ -274,7 +274,7 @@ bool DataStream::read(std::vector<T> & value)
     {
         T v;
         read(v);
-        value.push_back(v);
+        value.emplace_back(v);
     }
     return true;
 }

@@ -3,7 +3,7 @@
 using namespace std;
 #include <cmw/serialize/serializable.h>
 #include <cmw/serialize/data_stream.h>
-
+#include <vector>
 using namespace hnu::cmw::serialize;
 
 enum QosDurabilityPolicy {
@@ -29,11 +29,12 @@ public:
     uint32_t b;
     RoleType role;
     QosDurabilityPolicy policy = DURABILITY_SYSTEM_DEFAULT;
+    std::vector<int> image;
     int c;
     void show(){
         std::cout << "a:" << a << " b:" << b << " role:" <<(int)role << " c:" << c <<std::endl;
     }
-    SERIALIZE(a,b,role,c,policy)
+    SERIALIZE(a,b,role,c,policy,image)
 };
 
 

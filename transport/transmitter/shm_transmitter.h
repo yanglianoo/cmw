@@ -13,6 +13,7 @@
 #include <cmw/common/util.h>
 #include <cmw/common/log.h>
 #include <cmw/serialize/data_stream.h>
+#include <cmw/time/time.h>
 
 namespace hnu    {
 namespace cmw   {
@@ -89,13 +90,14 @@ bool ShmTransmitter<M>::Transmit(const M& msg, const MessageInfo& msg_info){
    }
 
     WritableBlock wb;
+    ADEBUG << "Debug Serialize start: " << Time::Now().ToMicrosecond();
     //序列化成字符串
     serialize::DataStream ds; 
     ds << msg;
     //拿到序列化数据所占内存字节数
     std::size_t msg_size = ds.ByteSize();
     //
-
+    ADEBUG << "Debug Serialize end: " << Time::Now().ToMicrosecond();
     
     //拿到一块block去写，并对拿到的这块block加上写锁
     if(!segment_->AcquireBlockToWrite(msg_size, &wb)){

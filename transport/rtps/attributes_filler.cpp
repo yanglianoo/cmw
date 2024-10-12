@@ -27,7 +27,7 @@ bool AttributesFiller::FillInWriterAttr(const std::string& channel_name,
 
 
     /*配置 writer 的history*/
-    writer_attr->hatt.payloadMaxSize = 255;
+    writer_attr->hatt.payloadMaxSize = qos.msg_size + 255;
     writer_attr->hatt.maximumReservedCaches = 50;
 
     /*配置 writer 的Attributes*/
