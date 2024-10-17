@@ -13,6 +13,8 @@
 #include <fstream>
 #include <sstream>
 #include <cmw/serialize/serializable.h>
+#include <cmw/common/log.h>
+#include <cmw/time/time.h>
 
 using namespace std;
 using std::ifstream;
@@ -195,10 +197,22 @@ void DataStream::write(const std::vector<T> & value)
     write((char *)&type, sizeof(char));
     int len = value.size();
     write(len);
-    for (int i = 0; i < len; i++)
-    {
-        write(value[i]);
-    }
+
+    uint64_t start = Time::Now().ToMicrosecond();
+    // for (int i = 0; i < len; i++)
+    // {
+    //     write(value[i]);
+    // }
+    const T* ptr = value.data();
+    const char* char_ptr = reinterpret_cast<const char*>(ptr);
+    write(char_ptr, value.size());
+
+    // 记录结束时间
+    uint64_t end = Time::Now().ToMicrosecond();
+
+    // 计算耗时（以微秒为单位）
+    uint64_t elapsed  = end - start;
+    AINFO << "代码执行时间: " << elapsed << " 微秒" ;
 }
 
 template <typename T>
@@ -270,12 +284,15 @@ bool DataStream::read(std::vector<T> & value)
     ++m_pos;
     int len;
     read(len);
-    for (int i = 0; i < len; i++)
-    {
-        T v;
-        read(v);
-        value.emplace_back(v);
-    }
+    // for (int i = 0; i < len; i++)
+    // {
+    //     T v;
+    //     read(v);
+    //     value.emplace_back(v);
+    // }
+    value.resize(len);
+    char* char_ptr = value.data();
+    read(char_ptr, len);
     return true;
 }
 

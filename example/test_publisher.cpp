@@ -11,7 +11,7 @@ struct TestMsg : public Serializable
 {
     uint64_t timestamp;  
 
-    std::vector<int> image;
+    std::vector<char> image;
     SERIALIZE(timestamp,image)
 };
 
@@ -19,7 +19,6 @@ int main()
 {
     Logger_Init("test.log");
     config::RoleAttributes role_attr;
-
     role_attr.channel_name = "/chatter0";
     role_attr.node_name = "publisher";
     role_attr.channel_id =common::GlobalData::RegisterChannel("/chatter0");
@@ -36,7 +35,7 @@ int main()
     role_attr.qos_profile.msg_size= ds.size();
 
     Publisher<TestMsg> publisher(role_attr);
-    std::cout<<"Init publisher " << publisher.Init() << std::endl;
+    std::cout<<"Init publisher " << publisher.Init()<< std::endl;
 
     std::shared_ptr<TestMsg> msg_ptr = std::make_shared<TestMsg>(testmsg);
     while (1)
