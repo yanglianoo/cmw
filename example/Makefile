@@ -2,13 +2,16 @@
 #指定编译器
 CC = g++
 
-#编译选项
-CFLAGS = -fPIC -shared -std=c++11 
+#编译选项 -fPIC -shared
+CFLAGS =  -std=c++14 
 $(warning CFLAGS is $(CFLAGS))
 
 #头文件路径
-INCLUDE := -I/home/timer/Fast-DDS/install/include   #FastDDS的头文件目录
-INCLUDE += -I/home/timer/Fast-DDS                   #cmw目录的上一级目录
+# INCLUDE := -I/home/timer/Fast-DDS/install/include   #FastDDS的头文件目录
+# INCLUDE += -I/home/timer/Fast-DDS                   #cmw目录的上一级目录
+INCLUDE := -I/data/Fast-DDS/install/include   #FastDDS的头文件目录
+INCLUDE += -I/data/                  #cmw目录的上一级目录
+
 
 #找出当前目录下，所有的源文件
 SRCS := $(shell find ../* -type f | grep '\.cpp' | grep -v './writer.cpp' | grep -v './reader.cpp' | grep -v './test.*\.cpp')
@@ -20,7 +23,8 @@ $(warning OBJS is ${OBJS})
 
 
 #第三方动态库的路径
-ThirdPartyLibPath := /home/timer/Fast-DDS/install/lib #FastDDS的动态库目录
+# ThirdPartyLibPath := /home/timer/Fast-DDS/install/lib #FastDDS的动态库目录
+ThirdPartyLibPath := /data/Fast-DDS/install/lib #FastDDS的动态库目录
 
 #第三方动态库
 ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3 
@@ -28,10 +32,14 @@ ThirdPartyLib += -lpthread
 ThirdPartyLib += -luuid
 ThirdPartyLib += -lrt
 
-# .PHONY:libcmw.so
-# libcmw.so: $(SRCS)
-# 	$(CC) $(INCLUDE) -o $@ $^ $(CFLAGS)  -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
+# 动态库名称
+SHARED_LIB = libcmw_v3.so
 
+# 生成动态库的规则
+# .PHONY: libcmw
+# libcmw: $(SHARED_LIB)
+# $(SHARED_LIB): $(OBJS)
+# 	$(CC) $(INCLUDE) $(CFLAGS) -shared -o $@ $^ -L$(ThirdPartyLibPath) $(ThirdPartyLib)
 
 test_writer: $(SRCS) test_writer.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath) 

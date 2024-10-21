@@ -8,7 +8,6 @@ using namespace hnu::cmw;
 int main()
 {
     config::RoleAttributes role_attr;
-
     role_attr.channel_name = "/chatter0";
     role_attr.node_name = "subscriber";
     role_attr.channel_id =common::GlobalData::RegisterChannel("/chatter0");
