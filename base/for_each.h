@@ -26,7 +26,7 @@ LessThan(const Value& val, const End& end) {
 
 #define FOR_EACH(i, begin, end)           \
   for (auto i = (true ? (begin) : (end)); \
-       apollo::cyber::base::LessThan(i, (end)); ++i)
+       hnu::cmw::base::LessThan(i, (end)); ++i)
 
 }
 }

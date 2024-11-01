@@ -34,7 +34,23 @@
   template <typename T>                                   \
   constexpr bool name<T>::value;
 
+// malloc 分配内存不会初始化
+inline void* CheckedMalloc(size_t size){
+  void* ptr = std::malloc(size);
+  if(!ptr){
+    throw std::bad_alloc();
+  }
+  return ptr;
+}
 
+// calloc 分配num*size的内存，全部初始化为0
+inline void* CheckedCalloc(size_t num, size_t size){
+  void* ptr = std::calloc(num, size);
+  if(!ptr){
+    throw std::bad_alloc();
+  }
+  return ptr;
+}
 
 
 #endif
