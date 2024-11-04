@@ -44,7 +44,7 @@ class CCObjectPool : public std::enable_shared_from_this<CCObjectPool<T>> {
     struct alignas(2 * sizeof(Node*)) Head{
         uintptr_t count;
         Node *node;
-    }
+    };
 
  private:
     CCObjectPool(CCObjectPool &) = delete;

@@ -7,30 +7,45 @@ CFLAGS =  -std=c++14
 $(warning CFLAGS is $(CFLAGS))
 
 #头文件路径
-# INCLUDE := -I/home/timer/Fast-DDS/install/include   #FastDDS的头文件目录
-# INCLUDE += -I/home/timer/Fast-DDS                   #cmw目录的上一级目录
-INCLUDE := -I/data/Fast-DDS/install/include   #FastDDS的头文件目录
-INCLUDE += -I/data/                  #cmw目录的上一级目录
+INCLUDE := -I/home/timer/Fast-DDS/install/include   #FastDDS的头文件目录
+INCLUDE += -I/home/timer/Fast-DDS                   #cmw目录的上一级目录
+# INCLUDE := -I/data/Fast-DDS/install/include   #FastDDS的头文件目录
+# INCLUDE += -I/data/                  #cmw目录的上一级目录
 
 
 #找出当前目录下，所有的源文件
-SRCS := $(shell find ../* -type f | grep '\.cpp' | grep -v './writer.cpp' | grep -v './reader.cpp' | grep -v './test.*\.cpp')
+SRCS := $(shell find ../* -type f | grep '\.cpp' | grep -v './test.*\.cpp')
 $(warning SRCS is ${SRCS})
+
+# 找出所有的汇编文件
+ASMS := $(shell find ../* -type f | grep '\.S')
+$(warning ASMS is ${ASMS})
 
 #确定cpp源文件对应的目标文件
 OBJS := $(patsubst %.cpp, %.o , $(filter %.cpp, $(SRCS)))
+
+# 确定汇编源文件对应的目标文件
+OBJS += $(patsubst %.S, %.o, $(filter %.S, $(ASMS)))
 $(warning OBJS is ${OBJS})
 
+# 编译目标文件的规则，确保包含头文件路径
+%.o: %.cpp
+	$(CC) $(INCLUDE) $(CFLAGS) -c -o $@ $<
+
+# 编译汇编文件规则
+%.o: %.S
+	$(AS) -c $< -o $@
 
 #第三方动态库的路径
-# ThirdPartyLibPath := /home/timer/Fast-DDS/install/lib #FastDDS的动态库目录
-ThirdPartyLibPath := /data/Fast-DDS/install/lib #FastDDS的动态库目录
+ThirdPartyLibPath := /home/timer/Fast-DDS/install/lib #FastDDS的动态库目录
+# ThirdPartyLibPath := /data/Fast-DDS/install/lib #FastDDS的动态库目录
 
 #第三方动态库
 ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3 
 ThirdPartyLib += -lpthread
 ThirdPartyLib += -luuid
 ThirdPartyLib += -lrt
+ThirdPartyLib += -latomic
 
 # 动态库名称
 SHARED_LIB = libcmw_v3.so
@@ -41,32 +56,31 @@ SHARED_LIB = libcmw_v3.so
 # $(SHARED_LIB): $(OBJS)
 # 	$(CC) $(INCLUDE) $(CFLAGS) -shared -o $@ $^ -L$(ThirdPartyLibPath) $(ThirdPartyLib)
 
-test_writer: $(SRCS) test_writer.cpp
+test_writer: $(OBJS) test_writer.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath) 
 
-
-test_reader: $(SRCS) test_reader.cpp
+test_reader: $(OBJS) test_reader.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
-test_serialize: $(SRCS) test_serialize.cpp
+test_serialize: $(OBJS) test_serialize.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
-test_node_manager: $(SRCS) test_node_manager.cpp
+test_node_manager: $(OBJS) test_node_manager.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
-test_channel_manager: $(SRCS) test_channel_manager.cpp
+test_channel_manager: $(OBJS) test_channel_manager.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
-test_topology_manager: $(SRCS) test_topology_manager.cpp
+test_topology_manager: $(OBJS) test_topology_manager.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 	
-test_publisher: $(SRCS) test_publisher.cpp
+test_publisher: $(OBJS) test_publisher.cpp 
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
-test_subscriber: $(SRCS) test_subscriber.cpp
+test_subscriber: $(OBJS) test_subscriber.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
-test_log: $(SRCS) test_log.cpp
+test_log: $(OBJS) test_log.cpp
 	$(CC) $(INCLUDE) -o $@.out $^   -L$(ThirdPartyLibPath) $(ThirdPartyLib) -Wl,-rpath=$(ThirdPartyLibPath)
 
 test_getenv : test_getenv.cpp	
@@ -76,3 +90,4 @@ test_getenv : test_getenv.cpp
 clean:
 	rm -rf *.out 
 	rm -rf *.log
+	rm -rf $(OBJS)
