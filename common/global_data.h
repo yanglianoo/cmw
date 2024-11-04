@@ -19,6 +19,10 @@ class GlobalData {
   int ProcessId() const;
   void SetProcessGroup(const std::string& process_group);
   const std::string& ProcessGroup() const;
+
+  void SetComponentNums(const int component_nums);
+  int ComponentNums() const;
+
   const std::string& HostIp() const;
   const std::string& HostName() const;
 
@@ -38,7 +42,7 @@ class GlobalData {
     int porcess_id_;
     std::string process_group_;
 
-      
+    int component_nums_ = 0;
 
     // run mode 暂时没有运行模式
      

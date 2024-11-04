@@ -47,6 +47,12 @@ GlobalData::GlobalData() {
 
 }
 
+void GlobalData::SetComponentNums(const int component_nums) {
+  component_nums_ = component_nums;
+}
+
+int GlobalData::ComponentNums() const { return component_nums_; }
+
 void GlobalData::InitHostInfo() {
     char host_name[1024];
     gethostname(host_name , sizeof(host_name));
