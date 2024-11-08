@@ -291,7 +291,8 @@ bool DataStream::read(std::vector<T> & value)
     //     value.emplace_back(v);
     // }
     value.resize(len);
-    char* char_ptr = value.data();
+    T* ptr = value.data();
+    char* char_ptr = reinterpret_cast<char*>(ptr);
     read(char_ptr, len);
     return true;
 }
