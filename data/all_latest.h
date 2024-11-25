@@ -49,7 +49,7 @@ class AllLatest : public DataFusion<M0, M1, M2, M3> {
                         std::lock_guard<std::mutex> lg(buffer_fusion_.Buffer()->Mutex());
                         buffer_fusion_.Buffer()->Fill(data);
                     }
-                )
+                );
             }
     bool Fusion(uint64_t* index, std::shared_ptr<M0>& m0, std::shared_ptr<M1>& m1,
               std::shared_ptr<M2>& m2, std::shared_ptr<M3>& m3) override {

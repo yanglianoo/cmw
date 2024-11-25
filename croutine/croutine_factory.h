@@ -60,7 +60,7 @@ RoutineFactory CreateRoutineFactory(
         F&& f, const std::shared_ptr<data::DataVisitor<M0, M1, M2>>& dv){
 
     RoutineFactory factory;
-    actory.SetDataVisitor(dv);
+    factory.SetDataVisitor(dv);
     factory.create_routine = [=]() {
         return [=]() {
         std::shared_ptr<M0> msg0;

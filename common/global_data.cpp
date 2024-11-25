@@ -1,4 +1,3 @@
-
 #include <cmw/common/global_data.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -7,6 +6,10 @@
 #include <netdb.h>
 #include <cmw/common/file.h>
 #include <cmw/common/util.h>
+#include <cmw/common/log.h>
+#include <cmw/config/conf_parse.h>
+#include <cmw/common/environment.h>
+
 namespace hnu {
 namespace cmw {
 namespace common {
@@ -14,6 +17,7 @@ namespace common {
 //类中静态成员是类的一部分，但是不是类的实例的一部分，因此需要在此定义
 AtomicHashMap<uint64_t, std::string, 256> GlobalData::channel_id_map_;
 AtomicHashMap<uint64_t, std::string, 512> GlobalData::node_id_map_;
+AtomicHashMap<uint64_t, std::string, 256> GlobalData::task_id_map_;
 
 namespace{
 //返回当前执行的进程的路径
@@ -76,7 +80,7 @@ void GlobalData::InitHostInfo() {
     ifaddrs* ifaddr = nullptr;
     if(getifaddrs(&ifaddr) != 0)
     {
-        std::cout << "getifaddrs failed, we will use 127.0.0.1 as host ip." << std::endl;
+        AERROR << "getifaddrs failed, we will use 127.0.0.1 as host ip.";
     }
     //ifaddrs 是一个链表，遍历每个节点
     for(ifaddrs* ifa = ifaddr; ifa ; ifa = ifa->ifa_next){
@@ -120,6 +124,25 @@ const std::string& GlobalData::ProcessGroup() const { return process_group_; }
 const std::string& GlobalData::HostIp() const { return host_ip_; }
 const std::string& GlobalData::HostName() const { return host_name_; }
 
+// 读取 cmw/conf/cmw.pb.conf并解析
+bool GlobalData::InitConfig() {
+  std::string config_path("cmw/conf/cmw.pb.conf");
+  bool success = config::GetCmwConfFromFile(config_path, &config_);
+  if (success) {
+    AINFO << "Relative cmw/conf/cmw.pb.conf found and used.";
+    return true;
+  }
+
+  config_path = GetAbsolutePath(WorkRoot(), "conf/cmw.pb.conf");
+  if (!config::GetCmwConfFromFile(config_path, &config_)) {
+    AERROR << "Read cmw/conf/cmw.pb.conf from absolute path failed!";
+    return false;
+  }
+
+  return true;
+}
+
+const CmwConfig& GlobalData::Config() const { return config_; }
 
 //注册Channel
 uint64_t GlobalData::RegisterChannel(const std::string& channel) {
@@ -136,7 +159,7 @@ uint64_t GlobalData::RegisterChannel(const std::string& channel) {
     }
     //说明有其他channel和当前的哈希值相等，出现了碰撞，将id++
     ++id;
-    std::cout << "Channel name hash collision: " << channel << " <=> " << *name;
+    AWARN << "Channel name hash collision: " << channel << " <=> " << *name;
   }
 
   
@@ -161,7 +184,7 @@ uint64_t GlobalData::RegisterNode(const std::string& node_name){
        }
        //说明有其他node_name和当前的哈希值相等，出现了哈希碰撞，将id++
        ++id;
-       std::cout << " Node name hash collision: " << node_name << " <=> " << *name << std::endl;
+       AWARN << " Node name hash collision: " << node_name << " <=> " << *name;
     }
     //确保node_name是一个唯一的id
     node_id_map_.Set(id , node_name);
@@ -178,7 +201,30 @@ std::string  GlobalData::GetChannelById(uint64_t id)
     return kEmptyString;
 }
 
+uint64_t GlobalData::RegisterTaskName(const std::string& task_name) {
+    auto id = Hash(task_name);
+    while (task_id_map_.Has(id))
+    {
+        std::string* name = nullptr;
+        task_id_map_.Get(id, &name);
+        if(task_name == *name){
+            break;
+        }
+        ++id;
+        AWARN << "Task name hash collision: " << task_name << " <=> " << *name;
+    }
 
+    task_id_map_.Set(id, task_name);
+    return id;
+}
+
+std::string GlobalData::GetTaskNameById(uint64_t id){
+    std::string* task_name = nullptr;
+    if(task_id_map_.Get(id, &task_name)){
+        return *task_name;
+    }
+    return kEmptyString;
+}
 }
 }
 }

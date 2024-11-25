@@ -29,6 +29,12 @@ namespace {
 CRoutine::CRoutine(const std::function<void()> &func) : func_(func) {
     std::call_once(pool_init_flag, [&]{
         uint32_t routine_num = common::GlobalData::Instance()->ComponentNums();
+        // 从cmw.pb.conf中读取 routine_num
+        auto &global_conf = common::GlobalData::Instance()->Config();
+        if(global_conf.scheduler_conf.routine_num){
+            routine_num = 
+                std::max(routine_num, global_conf.scheduler_conf.routine_num);
+        }
         context_pool.reset(new base::CCObjectPool<RoutineContext>(routine_num));
     });
 

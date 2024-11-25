@@ -49,7 +49,7 @@ bool ChannelBuffer<T>::Fetch(uint64_t* index,
 
     if(*index == 0){
         *index = buffer_->Tail();
-    }else if(*index == buffer_->Tail() + 1);{
+    }else if(*index == buffer_->Tail() + 1){
         return false;
     }else if(*index < buffer_->Head()){
         auto interval = buffer_->Tail() - *index;

@@ -23,7 +23,7 @@ template <typename T>
 class DataDispatcher{
     public:
         using BufferVector = 
-            std::vector<std::weak_ptr<CacheBuffer<std::shared_ptr<T>>>;
+            std::vector<std::weak_ptr<CacheBuffer<std::shared_ptr<T>>>>;
         ~DataDispatcher() {}
 
         void AddBuffer(const ChannelBuffer<T>& channel_buffer);

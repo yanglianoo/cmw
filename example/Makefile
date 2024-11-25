@@ -8,7 +8,8 @@ $(warning CFLAGS is $(CFLAGS))
 
 #头文件路径
 INCLUDE := -I/home/timer/Fast-DDS/install/include   #FastDDS的头文件目录
-INCLUDE += -I/home/timer/Fast-DDS                   #cmw目录的上一级目录
+INCLUDE += -I../../            #cmw目录的上一级目录
+INCLUDE += -I../thirdparty/    #cmw 引入的第三方库的目录
 # INCLUDE := -I/data/Fast-DDS/install/include   #FastDDS的头文件目录
 # INCLUDE += -I/data/                  #cmw目录的上一级目录
 

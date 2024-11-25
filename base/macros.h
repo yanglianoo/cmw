@@ -34,6 +34,15 @@
   template <typename T>                                   \
   constexpr bool name<T>::value;
 
+
+inline void cpu_relax() {
+#if defined(__aarch64__)
+  asm volatile("yield" ::: "memory");
+#else
+  asm volatile("rep; nop" ::: "memory");
+#endif
+}
+
 // malloc 分配内存不会初始化
 inline void* CheckedMalloc(size_t size){
   void* ptr = std::malloc(size);

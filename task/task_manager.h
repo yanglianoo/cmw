@@ -7,6 +7,8 @@
 #include <future>
 #include <memory>
 #include <vector>
+#include <type_traits>
+#include <functional>
 #include <cmw/base/bounded_queue.h>
 #include <cmw/common/macros.h>
 
@@ -23,11 +25,11 @@ class TaskManager{
         -> std::future<typename std::result_of<F(Args...)>::type>{
       using return_type = typename std::result_of<F(Args...)>::type;
       auto task = std::make_shared<std::packaged_task<return_type()>>(
-        std::bind(std::forward<F>(func), std::forward<Args>(args)...))
+            std::bind(std::forward<F>(func), std::forward<Args>(args)...));
         if(!stop_.load()){
-            task_queue_->Enqueue([task]() { (*task)()});
+            task_queue_->Enqueue([task]() { (*task)(); });
             for (auto& task : tasks_) {
-
+                
             }
         }
         std::future<return_type> res(task->get_future());

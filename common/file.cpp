@@ -1,6 +1,7 @@
 
 
 #include <cmw/common/file.h>
+#include <sys/stat.h>
 
 namespace hnu {
 namespace cmw {
@@ -33,7 +34,28 @@ std::string GetFileName(const std::string &path,
 
 }
 
+std::string GetAbsolutePath(const std::string &prefix,
+                            const std::string &relative_path){
+    if(relative_path.empty()){
+        return prefix;
+    }    
 
+    if(prefix.empty() || relative_path.front() == '/'){
+        return relative_path;
+    }     
+
+    if(prefix.back() == '/'){
+        return prefix + relative_path;
+    }   
+
+    return prefix + "/" + relative_path;
+}
+
+// 判断路径是否存在
+bool PathExists(const std::string &path){
+    struct stat info;
+    return stat(path.c_str(), &info) == 0;
+}
 
 }
 }

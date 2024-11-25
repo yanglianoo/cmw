@@ -68,6 +68,12 @@ class CRoutine{
 
         std::chrono::steady_clock::time_point wake_time() const;
 
+        void set_group_name(const std::string &group_name) {
+          group_name_ = group_name;
+        }
+
+        const std::string &group_name() { return group_name_; }
+
     private:
         CRoutine(CRoutine &) = delete;
         CRoutine &operator=(CRoutine &) = delete;

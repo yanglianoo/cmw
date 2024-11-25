@@ -22,6 +22,16 @@ inline std::string GetEnv(const std::string& var_name,
   return std::string(var);
 }
 
+/**
+ * @brief  设置工作空间路径
+ */
+inline const std::string WorkRoot() {
+  std::string work_root = GetEnv("CMW_PATH");
+  if (work_root.empty()) {
+    work_root = "/cmw";
+  }
+  return work_root;
+}
 
 }
 }
