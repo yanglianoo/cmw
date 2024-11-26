@@ -5,7 +5,8 @@
             "includePath": [
                 "/home/timer/Fast-DDS/install/include",   
                 "/home/timer/Fast-DDS",
-                "/home/timer/Fast-DDS/cmw/thirdparty"
+                "/home/timer/Fast-DDS/cmw/thirdparty",
+                "/home/timer/gtest/build/_install/include"
             ],
             "defines": []
 

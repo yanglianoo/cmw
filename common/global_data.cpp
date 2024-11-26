@@ -37,7 +37,7 @@ std::string program_path(){
 
 GlobalData::GlobalData() {
     InitHostInfo();
-
+    InitConfig();
     //获取进程ID
     porcess_id_ = getpid();
 
@@ -126,19 +126,20 @@ const std::string& GlobalData::HostName() const { return host_name_; }
 
 // 读取 cmw/conf/cmw.pb.conf并解析
 bool GlobalData::InitConfig() {
-  std::string config_path("cmw/conf/cmw.pb.conf");
-  bool success = config::GetCmwConfFromFile(config_path, &config_);
-  if (success) {
-    AINFO << "Relative cmw/conf/cmw.pb.conf found and used.";
-    return true;
-  }
+
+     std::string config_path("cmw/conf/cmw.pb.conf");
+//   bool success = config::GetCmwConfFromFile(config_path, &config_);
+//   if (success) {
+//     AINFO << "Relative cmw/conf/cmw.pb.conf found and used.";
+//     return true;
+//   }
 
   config_path = GetAbsolutePath(WorkRoot(), "conf/cmw.pb.conf");
   if (!config::GetCmwConfFromFile(config_path, &config_)) {
     AERROR << "Read cmw/conf/cmw.pb.conf from absolute path failed!";
     return false;
   }
-
+  AINFO << "Read cmw/conf/cmw.pb.conf from absolute path sucess!";
   return true;
 }
 
