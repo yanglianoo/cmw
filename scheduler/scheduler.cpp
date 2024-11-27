@@ -72,6 +72,19 @@ void Scheduler::ProcessLevelResourceControl() {
   pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 }
 
+void Scheduler::SetInnerThreadAttr(const std::string& name, std::thread* thr) {
+  if (thr != nullptr && inner_thr_confs_.find(name) != inner_thr_confs_.end()) {
+    auto th_conf = inner_thr_confs_[name];
+    auto cpuset = th_conf.cpuset;
+
+    std::vector<int> cpus;
+    ParseCpuset(cpuset, &cpus);
+    SetSchedAffinity(thr, cpus, "range");
+    SetSchedPolicy(thr, th_conf.policy, th_conf.prio);
+  }
+}
+
+
 }
 }
 }

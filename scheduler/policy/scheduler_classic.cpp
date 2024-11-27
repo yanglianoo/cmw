@@ -24,18 +24,20 @@ SchedulerClassic::SchedulerClassic(){
 
     std::string conf("conf/");
     conf.append(GlobalData::Instance()->ProcessGroup()).append(".conf");
+
+    // cfg_file = CMW_PATH/conf/***.conf 
     auto cfg_file = GetAbsolutePath(WorkRoot(), conf);
 
     hnu::cmw::config::CmwConfig cfg;
 
-    if(PathExists(cfg_file) && GetCmwConfFromFile(conf, &cfg)){
+    if(PathExists(cfg_file) && GetCmwConfFromFile(cfg_file, &cfg)){
         for(auto& thr : cfg.scheduler_conf.threads){
             inner_thr_confs_[thr.name] = thr;
         }
         
         if(!cfg.scheduler_conf.process_level_cpuset.empty()){
             process_level_cpuset_ = cfg.scheduler_conf.process_level_cpuset;
-
+            AINFO << "scheduler_conf.process_level_cpuset: " << cfg.scheduler_conf.process_level_cpuset;
         }
 
         classic_conf_ = cfg.scheduler_conf.classic_conf;
@@ -44,6 +46,7 @@ SchedulerClassic::SchedulerClassic(){
             for(auto task : group.tasks){
                 task.group_name = group_name;
                 cr_confs_[task.name] = task;
+                AINFO << "cr_confs_[" << task.name <<"]";
             }
         }
     } else {
@@ -67,7 +70,6 @@ SchedulerClassic::SchedulerClassic(){
 
     CreateProcessor();
 }
-
 /**
 scheduler_conf {
   policy: "classic"
@@ -98,6 +100,7 @@ scheduler_conf {
 void SchedulerClassic::CreateProcessor(){
     for(auto& group : classic_conf_.groups){
         auto& group_name = group.name;
+        AINFO << "group_name: " << group_name ;
         auto proc_num = group.processor_num;
         if(task_pool_size_ == 0){
             task_pool_size_ = proc_num;
@@ -106,7 +109,10 @@ void SchedulerClassic::CreateProcessor(){
         auto& affinity = group.affinity;
         auto& processor_policy = group.processor_policy;
         auto processor_prio = group.processor_prio;
-
+        AINFO << "affinity: " << affinity ;
+        AINFO << "processor_policy: " << processor_policy ;
+        AINFO << "processor_prio: " << processor_prio ;
+        AINFO << "cpuset: " << group.cpuset ;
         std::vector<int> cpuset;
 
         ParseCpuset(group.cpuset, &cpuset);

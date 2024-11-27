@@ -1,100 +1,40 @@
-
-#指定编译器
+# 编译器和选项
 CC = g++
+CFLAGS = -std=c++14
+INCLUDE := -I/home/timer/Fast-DDS/install/include \
+           -I/home/timer/gtest/build/_install/include \
+           -I../../ \
+           -I../thirdparty/
 
-#编译选项 -fPIC -shared
-CFLAGS =  -std=c++14 
-$(warning CFLAGS is $(CFLAGS))
+ThirdPartyLibPath := -L/home/timer/Fast-DDS/install/lib \
+                     -L/home/timer/gtest/build/_install/lib
 
-#头文件路径
-INCLUDE := -I/home/timer/Fast-DDS/install/include   #FastDDS的头文件目录
-INCLUDE += -I/home/timer/gtest/build/_install/include #gtest的头文件目录
-INCLUDE += -I../../            #cmw目录的上一级目录
-INCLUDE += -I../thirdparty/    #cmw 引入的第三方库的目录
-# INCLUDE := -I/data/Fast-DDS/install/include   #FastDDS的头文件目录
-# INCLUDE += -I/data/                  #cmw目录的上一级目录
+ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3 \
+                 -lpthread -luuid -lrt -latomic -lgtest
+
+# 可执行文件列表
+EXECUTABLES := test_writer test_reader test_serialize test_node_manager \
+              test_channel_manager test_topology_manager test_publisher \
+              test_subscriber test_log test_getenv test_croutine test_scheduler \
 
 
-#找出当前目录下，所有的源文件
+# 找出源文件
 SRCS := $(shell find ../* -type f | grep '\.cpp' | grep -v './test.*\.cpp')
-$(warning SRCS is ${SRCS})
-
-# 找出所有的汇编文件
 ASMS := $(shell find ../* -type f | grep '\.S')
-$(warning ASMS is ${ASMS})
+OBJS := $(patsubst %.cpp, %.o, $(SRCS)) $(patsubst %.S, %.o, $(ASMS))
 
-#确定cpp源文件对应的目标文件
-OBJS := $(patsubst %.cpp, %.o , $(filter %.cpp, $(SRCS)))
-
-# 确定汇编源文件对应的目标文件
-OBJS += $(patsubst %.S, %.o, $(filter %.S, $(ASMS)))
-$(warning OBJS is ${OBJS})
-
-# 编译目标文件的规则，确保包含头文件路径
+# 编译规则
 %.o: %.cpp
 	$(CC) $(INCLUDE) $(CFLAGS) -c -o $@ $<
 
-# 编译汇编文件规则
 %.o: %.S
 	$(AS) -c $< -o $@
 
-#第三方动态库的路径
-ThirdPartyLibPath := -L/home/timer/Fast-DDS/install/lib #FastDDS的动态库目录
-ThirdPartyLibPath += -L/home/timer/gtest/build/_install/lib #gtest的动态库目录
-# ThirdPartyLibPath := /data/Fast-DDS/install/lib #FastDDS的动态库目录
+# 生成可执行文件的规则
+$(EXECUTABLES): %: $(OBJS) %.cpp
+	$(CC) $(INCLUDE) -o $@.out $^ $(ThirdPartyLibPath) $(ThirdPartyLib)
 
-#第三方动态库
-ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3 
-ThirdPartyLib += -lpthread
-ThirdPartyLib += -luuid
-ThirdPartyLib += -lrt
-ThirdPartyLib += -latomic
-ThirdPartyLib += -lgtest 
-
-# 动态库名称
-SHARED_LIB = libcmw_v3.so
-
-# 生成动态库的规则
-# .PHONY: libcmw
-# libcmw: $(SHARED_LIB)
-# $(SHARED_LIB): $(OBJS)
-# 	$(CC) $(INCLUDE) $(CFLAGS) -shared -o $@ $^ -L$(ThirdPartyLibPath) $(ThirdPartyLib)
-
-test_writer: $(OBJS) test_writer.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_reader: $(OBJS) test_reader.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_serialize: $(OBJS) test_serialize.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_node_manager: $(OBJS) test_node_manager.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_channel_manager: $(OBJS) test_channel_manager.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_topology_manager: $(OBJS) test_topology_manager.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-	
-test_publisher: $(OBJS) test_publisher.cpp 
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_subscriber: $(OBJS) test_subscriber.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_log: $(OBJS) test_log.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-test_getenv : test_getenv.cpp	
-	$(CC) -o $@.out $^
-
-test_croutine: $(OBJS) test_croutine.cpp
-	$(CC) $(INCLUDE) -o $@.out $^  $(ThirdPartyLibPath) $(ThirdPartyLib) 
-
-.PHONY:clean
+# 清理规则
+.PHONY: clean
 clean:
-	rm -rf *.out 
-	rm -rf *.log
-	rm -rf $(OBJS)
+	rm -rf *.out *.log $(OBJS)

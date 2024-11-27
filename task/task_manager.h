@@ -11,6 +11,7 @@
 #include <functional>
 #include <cmw/base/bounded_queue.h>
 #include <cmw/common/macros.h>
+#include <cmw/scheduler/scheduler_factory.h>
 
 namespace hnu {
 namespace cmw {
@@ -29,7 +30,7 @@ class TaskManager{
         if(!stop_.load()){
             task_queue_->Enqueue([task]() { (*task)(); });
             for (auto& task : tasks_) {
-                
+                scheduler::Instance()->NotifyTask(task);
             }
         }
         std::future<return_type> res(task->get_future());
