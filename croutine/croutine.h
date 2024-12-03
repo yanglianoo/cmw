@@ -135,6 +135,7 @@ inline std::chrono::steady_clock::time_point CRoutine::wake_time() const {
 
 inline void CRoutine::Wake() { state_ = RoutineState::READY; }
 
+inline void CRoutine::HangUp() { CRoutine::Yield(RoutineState::DATA_WAIT); }
 
 inline void CRoutine::Sleep(const Duration &sleep_duration) {
   wake_time_ = std::chrono::steady_clock::now() + sleep_duration;

@@ -16,6 +16,7 @@ ThirdPartyLib := -lfastrtps -lfastcdr -lfoonathan_memory-0.7.3 \
 EXECUTABLES := test_writer test_reader test_serialize test_node_manager \
               test_channel_manager test_topology_manager test_publisher \
               test_subscriber test_log test_getenv test_croutine test_scheduler \
+              test_task \
 
 
 # 找出源文件

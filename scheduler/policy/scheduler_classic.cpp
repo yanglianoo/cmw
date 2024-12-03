@@ -62,7 +62,7 @@ SchedulerClassic::SchedulerClassic(){
 
         classic_conf_.groups.emplace_back();
 
-        auto sched_group = classic_conf_.groups.back();
+        auto& sched_group = classic_conf_.groups.back();
 
         sched_group.name = DEFAULT_GROUP_NAME;
         sched_group.processor_num = proc_num;

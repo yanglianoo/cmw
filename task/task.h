@@ -7,11 +7,12 @@
 namespace hnu {
 namespace cmw {
 
+//在模板函数中不知道传入的参数是左值还是右值，因此使用完美转发
 template <typename F, typename... Args>
 static auto Async(F&& f, Args&&... args)
     -> std::future<typename std::result_of<F(Args...)>::type>{
-      
-  return 
+    return TaskManager::Instance()->Enqueue(std::forward<F>(f),
+                                            std::forward<Args>(args)...);
 }
 
 

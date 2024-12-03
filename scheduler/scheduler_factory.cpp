@@ -26,6 +26,8 @@ Scheduler* Instance() {
 
         obj = instance.load(std::memory_order_relaxed);
         if(obj == nullptr){
+
+            //读取配置文件
             std::string policy;
             auto config_file = std::string("conf/") + 
                                 GlobalData::Instance()->ProcessGroup() + ".conf";
@@ -43,15 +45,18 @@ Scheduler* Instance() {
                     AWARN << "No scheduler conf " << config_file
                     << " found, use default.";
                 }
-            } 
+            }
+            //new一个 Scheduler
             if(!policy.compare("classic")){
                 obj = new SchedulerClassic();
+                AINFO << "new SchedulerClassic() ";
             } else if (!policy.compare("choreography")){
 
             } else {
                 AWARN << "Invalid scheduler policy: " << policy;
                 obj = new SchedulerClassic();
             }
+            //将新建的 Scheduler 存到 instance 指针中
             instance.store(obj, std::memory_order_release);
         }
     }

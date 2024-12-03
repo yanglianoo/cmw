@@ -9,6 +9,8 @@
 #include <cmw/common/util.h>
 #include <cmw/data/data_visitor.h>
 #include <cmw/scheduler/processor_context.h>
+#include <cmw/scheduler/processor.h>
+#include <cmw/scheduler/processor_context.h>
 
 namespace hnu    {
 namespace cmw   {
@@ -31,8 +33,8 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
 
     auto task_id = GlobalData::RegisterTaskName(name);
 
+    //新建一个croutine
     auto cr = std::make_shared<CRoutine>(func);
-
     cr->set_id(task_id);
     cr->set_name(name);
 
@@ -84,6 +86,34 @@ void Scheduler::SetInnerThreadAttr(const std::string& name, std::thread* thr) {
   }
 }
 
+void Scheduler::Shutdown() {
+  if(cyber_likely(stop_.exchange(true))){
+    return;
+  }
+
+  for(auto& ctx : pctxs_){
+    ctx->Shutdown();
+  }
+
+  std::vector<uint64_t> cr_list;
+  {
+    ReadLockGuard<AtomicRWLock> lk(id_cr_lock_);
+    for(auto& cr : id_cr_){
+      cr_list.emplace_back(cr.second->id());
+    }
+  }
+
+  for(auto& id : cr_list){
+    RemoveCRoutine(id);
+  }
+
+  for(auto& processor : processors_){
+    processor->Stop();
+  }
+
+  processors_.clear();
+  pctxs_.clear();
+}
 
 }
 }
