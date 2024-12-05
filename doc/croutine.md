@@ -72,7 +72,7 @@ static thread_local char *main_stack_;
 
 ### 2.3 协程的执行
 
-协程（非对称）中最核心需要实现resume和yield两个操作。前者让该协程继续执行，后者让协程交出控制权。这里分别是Resume()和Yield()函数。前者最核心做的事就是将上下文从当前切换到目标协程；后者反之。它们都是通过SwapContext()函数实现的上下文切换。我们先来看`Resume()`函数的实现
+协程（非对称）中最核心需要实现`resume`和`yield`两个操作。前者让该协程继续执行，后者让协程交出控制权。这里分别是Resume()和Yield()函数。前者最核心做的事就是将上下文从当前切换到目标协程；后者反之。它们都是通过SwapContext()函数实现的上下文切换。我们先来看`Resume()`函数的实现
 
 <img src="image/image-20241106212948323.png" alt="image-20241106212948323" style="zoom:67%;" />
 
@@ -223,8 +223,8 @@ ctx_swap:
 ## 参考链接
 
 - [x86 psABIs / x86-64 psABI · GitLab](https://gitlab.com/x86-psABIs/x86-64-ABI)
-
 - [x86-64中的寄存器_x64汇编 rbx是返回值吗-CSDN博客](https://blog.csdn.net/z974656361/article/details/107125458/)
 - [也来说说协程（2）——上下文切换 - 知乎](https://zhuanlan.zhihu.com/p/220025846)
 - [什么是协程-CSDN博客](https://blog.csdn.net/sanmi8276/article/details/111375619)
 - [CyberRt协程介绍-CSDN博客](https://blog.csdn.net/lizhipengcsdn/article/details/131236278)
+- [apollo cyberRT调度模块介绍 - 知乎](https://zhuanlan.zhihu.com/p/630891456)
