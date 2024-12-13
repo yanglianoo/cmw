@@ -163,13 +163,11 @@ inline RoutineState CRoutine::UpdateState() {
             state_ = RoutineState::READY;
             return state_;
     }
-
     if(!updated_.test_and_set(std::memory_order_release)){
         if(state_ == RoutineState::DATA_WAIT || state_ == RoutineState::IO_WAIT){
             state_ = RoutineState::READY;
         }
     }
-
     return state_;
 }
 

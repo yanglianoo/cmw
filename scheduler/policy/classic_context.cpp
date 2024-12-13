@@ -46,15 +46,12 @@ std::shared_ptr<CRoutine> ClassicContext::NextRoutine() {
             if(!cr->Acquire()){
                 continue;
             }
-
             if(cr->UpdateState() == RoutineState::READY){
                 return cr;
             }
-
             cr->Release();
         }
     }
-
     return nullptr;
 }
 

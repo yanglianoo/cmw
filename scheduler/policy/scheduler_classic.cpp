@@ -38,6 +38,7 @@ SchedulerClassic::SchedulerClassic(){
         if(!cfg.scheduler_conf.process_level_cpuset.empty()){
             process_level_cpuset_ = cfg.scheduler_conf.process_level_cpuset;
             AINFO << "scheduler_conf.process_level_cpuset: " << cfg.scheduler_conf.process_level_cpuset;
+            ProcessLevelResourceControl();
         }
 
         classic_conf_ = cfg.scheduler_conf.classic_conf;
@@ -100,7 +101,7 @@ scheduler_conf {
 void SchedulerClassic::CreateProcessor(){
     for(auto& group : classic_conf_.groups){
         auto& group_name = group.name;
-        AINFO << "group_name: " << group_name ;
+
         auto proc_num = group.processor_num;
         if(task_pool_size_ == 0){
             task_pool_size_ = proc_num;
@@ -109,10 +110,7 @@ void SchedulerClassic::CreateProcessor(){
         auto& affinity = group.affinity;
         auto& processor_policy = group.processor_policy;
         auto processor_prio = group.processor_prio;
-        AINFO << "affinity: " << affinity ;
-        AINFO << "processor_policy: " << processor_policy ;
-        AINFO << "processor_prio: " << processor_prio ;
-        AINFO << "cpuset: " << group.cpuset ;
+
         std::vector<int> cpuset;
 
         ParseCpuset(group.cpuset, &cpuset);
@@ -155,7 +153,6 @@ bool SchedulerClassic::DispatchTask(const std::shared_ptr<CRoutine>& cr){
 
         id_cr_[cr->id()] = cr;
     }
-
     if(cr_confs_.find(cr->name()) != cr_confs_.end()){
         ClassicTask task = cr_confs_[cr->name()];
         cr->set_priority(task.prio);

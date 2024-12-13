@@ -17,7 +17,7 @@ using namespace hnu::cmw::croutine;
 using namespace hnu::cmw;
 
 void scheduler_testfunc() {
-    std::cout << "test cheduler func" <<std::endl;
+    std::cout << "test cheduler func --------------------------------" <<std::endl;
 }
 void proc() {}
 
@@ -81,19 +81,20 @@ void test_create_task(){
   auto sched = scheduler::Instance();
 
   // read example_sched_classic.conf task 'ABC' prio
-  std::string croutine_name = "ABC";
+  std::string croutine_name = "A";
 
   EXPECT_TRUE(sched->CreateTask(&proc, croutine_name));
-  // create a croutine with the same name
+  //create a croutine with the same name
   EXPECT_FALSE(sched->CreateTask(&proc, croutine_name));
 
   auto task_id = GlobalData::RegisterTaskName(croutine_name);
   EXPECT_TRUE(sched->NotifyTask(task_id));
+
   EXPECT_TRUE(sched->RemoveTask(croutine_name));
   // remove the same task twice
   EXPECT_FALSE(sched->RemoveTask(croutine_name));
   // remove a not exist task
-  EXPECT_TRUE(sched->RemoveTask("driver"));
+  EXPECT_FALSE(sched->RemoveTask("driver"));
 }
 
 void test_notify_task(){
@@ -130,8 +131,10 @@ int main(int argc, char const *argv[])
 {   
     Init("test_scheduler");
     
+    test_create_task();
+    //test_sched_classic();
     // test_create_task();
     // test_notify_task();
     // test_set_inner_thread_attr();
-    test_classic();
+    //test_classic();
 }
