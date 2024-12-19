@@ -1,7 +1,7 @@
 #include <cmw/class_loader/shared_library/shared_library.h>
 
 #include <dlfcn.h>
-
+#include <cmw/common/log.h>
 
 
 namespace hnu {
@@ -28,9 +28,9 @@ void SharedLibrary::Load(const std::string& path, int flags){
     }else{
         real_flag |= SHLIB_GLOBAL;
     }
-
+    
     handle_ = dlopen(path.c_str(), real_flag);
-
+    AINFO << "dlopen shared library: " << path;
     if(!handle_){
         const char* err = dlerror();
         throw LibraryAlreadyLoadedException(err ? std::string(err) : path);

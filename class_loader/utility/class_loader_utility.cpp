@@ -37,29 +37,33 @@ ClassClassFactoryMap& GetClassFactoryMapByBaseClass(
     if (iter != base_to_factory_map_map.end()) {
         return iter->second;
     }     
-
     base_to_factory_map_map.emplace(base_typeid, ClassClassFactoryMap());
-
+    if(base_to_factory_map_map.empty()){
+        std::cout << "debug base_to_factory_map_map"<<std::endl;
+    }
     return base_to_factory_map_map[base_typeid];
 }
 
 ClassLoader* GetCurActiveClassLoader() { return curr_active_loader; }
 
 ClassFactoryVector GetAllClassFactoryObjectsOfLibrary(
-    const std::string& library_path){
+    const std::string& library_path) {
+  std::lock_guard<std::recursive_mutex> lock(base_to_factory_map_mutex);
 
-    std::lock_guard<std::recursive_mutex> lock(base_to_factory_map_mutex);
-
-    ClassFactoryVector result;
-
-    for(auto& kv : base_to_factory_map_map){
-        for(auto& class_to_factory : kv.second){
-            auto class_factory_obj = class_to_factory.second;
-            if(class_factory_obj->GetLibraryPath() == library_path){
-                result.emplace_back(class_factory_obj);
-            }
-        }
+  ClassFactoryVector result;
+  if(base_to_factory_map_map.empty()){
+    std::cout << "base_to_factory_map_map is empty" <<std::endl;
+  }
+  for (auto& kv : base_to_factory_map_map) {
+    for (auto& class_to_factory : kv.second) {
+      auto class_factory_obj = class_to_factory.second;
+      std::cout << 11111 << std::endl;
+      if (class_factory_obj->GetLibraryPath() == library_path) {
+        result.emplace_back(class_factory_obj);
+      }
     }
+  }
+  return result;
 }
 
 void DestroyClassFactoryObjectsOfLibrary(
@@ -144,7 +148,7 @@ bool LoadLibrary(const std::string& library_path, ClassLoader* loader){
 
     std::lock_guard<std::mutex> lock(open_libraries_mutex);
     open_libraries.emplace(library_path, shared_library);
-
+    ADEBUG << "Finish LoadLibrary!!!";
     return true;
 }
 
@@ -171,6 +175,7 @@ void UnloadLibrary(const std::string& library_path, ClassLoader* loader) {
     }
 }
 
+}
 }
 }
 }

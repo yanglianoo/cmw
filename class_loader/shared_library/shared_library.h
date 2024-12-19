@@ -22,7 +22,6 @@ public:
         SHLIB_LOCAL = 2,
     };
 
-
     SharedLibrary() = default;
     virtual ~SharedLibrary();
 
@@ -31,7 +30,6 @@ public:
     SharedLibrary(const std::string& path, int flags);
 
 public:
-
     void Load(const std::string& path);
     void Load(const std::string& path, int flags);
     void Unload();
@@ -42,7 +40,6 @@ public:
     inline const std::string& GetPath() const { return path_; }
 
 private:
-
     void* handle_ = nullptr;
     std::string path_;
     std::mutex mutex_;

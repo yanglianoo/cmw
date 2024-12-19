@@ -55,7 +55,7 @@ std::vector<std::string> GetValidClassNames(ClassLoader* loader);
 template <typename Derived, typename Base>
 void RegisterClass(const std::string& class_name,
                    const std::string& base_class_name){
-    AINFO << "Register class:" << class_name << "," << base_class_name;               
+    std::cout << "Register class:" << class_name << "," << base_class_name << std::endl;            
     utility::AbstractClassFactory<Base>* new_class_factory_obj =
       new utility::ClassFactory<Derived, Base>(class_name, base_class_name);
     auto curr_active_loader = GetCurActiveClassLoader();
@@ -65,7 +65,7 @@ void RegisterClass(const std::string& class_name,
     GetClassFactoryMapMapMutex().lock();
     ClassClassFactoryMap& factory_map = 
                 GetClassFactoryMapByBaseClass(typeid(Base).name());
-
+    
     factory_map[class_name] = new_class_factory_obj;
     GetClassFactoryMapMapMutex().unlock();
 }
@@ -77,6 +77,7 @@ Base* CreateClassObj(const std::string& class_name, ClassLoader* loader) {
       GetClassFactoryMapByBaseClass(typeid(Base).name());
     AbstractClassFactory<Base>* factory = nullptr;
     if (factoryMap.find(class_name) != factoryMap.end()) {
+        std::cout << "find " << class_name << "factory";
         factory = dynamic_cast<utility::AbstractClassFactory<Base>*>(
             factoryMap[class_name]);
     }
