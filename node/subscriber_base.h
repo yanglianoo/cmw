@@ -16,6 +16,7 @@
 #include <cmw/event/perf_event_cache.h>
 #include <cmw/transport/transport.h>
 #include <cmw/transport/receiver/receiver.h>
+#include <cmw/data/data_dispatcher.h>
 
 namespace hnu    {
 namespace cmw   {
@@ -32,21 +33,50 @@ public:
 
     virtual void Shutdown() = 0;
 
-    // virtual void ClearData() = 0;
+    /**
+     * @brief Clear local data
+     */
+    virtual void ClearData() = 0;
 
-    // virtual void Observe() = 0;
+    /**
+     * @brief Get stored data
+     */
+    virtual void Observe() = 0;
 
-    // virtual bool Empty() const = 0;
+    /**
+     * @brief Query whether the Reader has data to be handled
+     *
+     * @return true if data container is empty
+     * @return false if data container has data
+     */
+    virtual bool Empty() const = 0;   
 
-   // virtual bool HasReceived() const = 0;
+    /**
+     * @brief Query whether we have received data since last clear
+     *
+     * @return true if the reader has received data
+     * @return false if the reader has not received data
+     */
+    virtual bool HasReceived() const = 0;
 
-   // virtual double GetDelaySec() const = 0;
+    /**
+     * @brief Get time interval of since last receive message
+     *
+     * @return double seconds delay
+     */
+    virtual double GetDelaySec() const = 0;
 
-   // virtual uint32_t PendingQueueSize() const = 0;
+    /**
+     * @brief Get the value of pending queue size
+     *
+     * @return uint32_t result value
+     */
+    virtual uint32_t PendingQueueSize() const = 0;
 
-   // virtual bool HasPublisher() { return false; }
 
-   // virtual void GetPublishers(std::vector<RoleAttributes>* publishers) {}
+    virtual bool HasPublisher() { return false; }
+
+    virtual void GetPublishers(std::vector<RoleAttributes>* publishers) {}
 
     const std::string& GetChannelName() const {
         return role_attr_.channel_name;
@@ -54,9 +84,9 @@ public:
 
     uint64_t ChannelId() const { return role_attr_.channel_id; }
 
-    // const QosProfile& QosProfile() const {
-    //     return role_attr_.qos_profile;
-    // }
+    const QosProfile& GetQosProfile() const {
+        return role_attr_.qos_profile;
+    }
     
     bool IsInit() const { return init_.load(); }
 protected:
@@ -99,12 +129,11 @@ auto ReceiverManager<MessageT>::GetReceiver(const RoleAttributes& role_attr) ->
                                   const RoleAttributes& subscriber_attr){
                             (void)msg_info;
                             (void)subscriber_attr;
-
-                            
-                                  }
+                            data::DataDispatcher<MessageT>::Instance()->Dispatch(
+                                subscriber_attr.channel_id, msg);
+                            }
                 );
     }
-
     return receiver_map_[channel_name];
 
 }

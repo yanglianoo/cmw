@@ -68,7 +68,7 @@ bool ConditionNotifier::Listen(int timeout_ms ,ReadableInfo* info){
         
         uint64_t seq = indicator_->next_seq.load();
 
-        //如果有其他进程 执行了Notify，则 seq > next_seq_ ,说明有新的info
+        //如果有其他进程 执行了Notify，则 seq != next_seq_ ,说明有新的info
         if(seq != next_seq_){
             auto idx = next_seq_ % kBufLength;
             auto actual_seq = indicator_->seqs[idx];

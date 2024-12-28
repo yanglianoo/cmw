@@ -73,6 +73,47 @@ class DataVisitor : public DataVisitorBase {
         ChannelBuffer<M3> buffer_m3_;
 };
 
+template <typename M0, typename M1, typename M2>
+class DataVisitor<M0, M1, M2, NullType> : public DataVisitorBase {
+ public:
+  explicit DataVisitor(const std::vector<VisitorConfig>& configs)
+      : buffer_m0_(configs[0].channel_id,
+                   new BufferType<M0>(configs[0].queue_size)),
+        buffer_m1_(configs[1].channel_id,
+                   new BufferType<M1>(configs[1].queue_size)),
+        buffer_m2_(configs[2].channel_id,
+                   new BufferType<M2>(configs[2].queue_size)) {
+    DataDispatcher<M0>::Instance()->AddBuffer(buffer_m0_);
+    DataDispatcher<M1>::Instance()->AddBuffer(buffer_m1_);
+    DataDispatcher<M2>::Instance()->AddBuffer(buffer_m2_);
+    data_notifier_->AddNotifier(buffer_m0_.channel_id(), notifier_);
+    data_fusion_ =
+        new fusion::AllLatest<M0, M1, M2>(buffer_m0_, buffer_m1_, buffer_m2_);
+  }
+
+  ~DataVisitor() {
+    if (data_fusion_) {
+      delete data_fusion_;
+      data_fusion_ = nullptr;
+    }
+  }
+
+  bool TryFetch(std::shared_ptr<M0>& m0, std::shared_ptr<M1>& m1,  // NOLINT
+                std::shared_ptr<M2>& m2) {                         // NOLINT
+    if (data_fusion_->Fusion(&next_msg_index_, m0, m1, m2)) {
+      next_msg_index_++;
+      return true;
+    }
+    return false;
+  }
+
+ private:
+  fusion::DataFusion<M0, M1, M2>* data_fusion_ = nullptr;
+  ChannelBuffer<M0> buffer_m0_;
+  ChannelBuffer<M1> buffer_m1_;
+  ChannelBuffer<M2> buffer_m2_;
+};
+
 template <typename M0, typename M1>
 class DataVisitor<M0, M1, NullType, NullType> : public DataVisitorBase {
  public:

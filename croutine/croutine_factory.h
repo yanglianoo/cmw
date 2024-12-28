@@ -24,7 +24,7 @@ class RoutineFactory{
         inline std::shared_ptr<data::DataVisitorBase> GetDataVisitor() const{
             return data_visitor_;
         }
-        inline void SetDataVisitor(std::shared_ptr<data::DataVisitorBase>& dv){
+        inline void SetDataVisitor(const std::shared_ptr<data::DataVisitorBase>& dv){
             data_visitor_ = dv;
         }
     private:
@@ -53,6 +53,29 @@ RoutineFactory CreateRoutineFactory(
         };
     };
     return factory;
+}
+
+template <typename M0, typename M1, typename F>
+RoutineFactory CreateRoutineFactory(
+    F&& f, const std::shared_ptr<data::DataVisitor<M0, M1>>& dv) {
+  RoutineFactory factory;
+  factory.SetDataVisitor(dv);
+  factory.create_routine = [=]() {
+    return [=]() {
+      std::shared_ptr<M0> msg0;
+      std::shared_ptr<M1> msg1;
+      for (;;) {
+        CRoutine::GetCurrentRoutine()->set_state(RoutineState::DATA_WAIT);
+        if (dv->TryFetch(msg0, msg1)) {
+          f(msg0, msg1);
+          CRoutine::Yield(RoutineState::READY);
+        } else {
+          CRoutine::Yield();
+        }
+      }
+    };
+  };
+  return factory;
 }
 
 template <typename M0, typename M1, typename M2, typename F>
