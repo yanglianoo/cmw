@@ -31,8 +31,10 @@ public:
         return role_attr_.channel_name;
     }
     //判断此Publisher是否已经初始化了
-    bool IsInit() const  {return init_.load();}
-
+    bool IsInit() const  {
+        std::lock_guard<std::mutex> g(lock_);
+        return init_;
+    }
 
 protected:
     RoleAttributes role_attr_;

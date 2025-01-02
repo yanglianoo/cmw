@@ -10,6 +10,7 @@
 #include <cmw/common/log.h>
 #include <cmw/time/time.h>
 #include <cmw/serialize/data_stream.h>
+#include <cmw/common/log.h>
 
 namespace hnu {
 namespace cmw {
@@ -43,7 +44,7 @@ bool Manager::StartDiscovery(RtpsParticipant* participant){
 
     //创建 rtpsWriter 和 rtspReader
     if(!CreateWriter(participant) || !CreateReader(participant)){
-        std::cout << "create writer or reader failed." << std::endl;
+        AERROR << "create writer or reader failed.";
         StopDiscovery();
         return false;
     }
@@ -89,7 +90,7 @@ void Manager::Shutdown(){
 bool Manager::Join(const RoleAttributes& attr, RoleType role,
                   bool need_write ){
     if(is_shutdown_.load()){
-        std::cout << "the manager has been shut down." << std::endl;
+        ADEBUG << "the manager has been shut down.";
         return false;
     }    
 
@@ -113,7 +114,7 @@ bool Manager::Join(const RoleAttributes& attr, RoleType role,
 /*离开拓扑网络*/
 bool Manager::Leave(const RoleAttributes& attr, RoleType role){
     if(is_shutdown_.load()){
-        std::cout << "the manager has been shut down." << std::endl;
+        ADEBUG << "the manager has been shut down.";
         return false;
     }   
     RETURN_VAL_IF(!((1 << role) & allowed_role_), false);
@@ -183,7 +184,7 @@ bool Manager::NeedPublish(const ChangeMsg& msg) const {
 
 void Manager::OnRemoteChange(const std::string& str_msg){
     if(is_shutdown_.load()){
-        std::cout <<  "the manager has been shut down." << std::endl;
+        ADEBUG <<  "the manager has been shut down.";
         return;
     }
 
@@ -196,7 +197,7 @@ void Manager::OnRemoteChange(const std::string& str_msg){
 
     //判断是否是同一进程
     if(IsFromSameProcess(msg)){
-        std::cout << "FromSameProcess" << std::endl;
+        ADEBUG << "FromSameProcess";
         return;
     }
 
@@ -248,7 +249,7 @@ bool Manager::Write(const ChangeMsg& msg){
   
   //判断discovery是否启动了
   if(!is_discovery_started_.load()){
-    std::cout << "discovery is not started." << std::endl;
+    ADEBUG << "discovery is not started.";
     return false;
   }
 
