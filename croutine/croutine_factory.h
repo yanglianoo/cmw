@@ -44,7 +44,7 @@ RoutineFactory CreateRoutineFactory(
             for(;;){
                 CRoutine::GetCurrentRoutine()->set_state(RoutineState::DATA_WAIT);
                 if(dv->TryFetch(msg)){
-                    f(msg);
+                    f(msg);  
                     CRoutine::Yield(RoutineState::READY);
                 }else{
                     CRoutine::Yield();

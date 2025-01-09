@@ -11,10 +11,11 @@ namespace config {
 
 using namespace serialize;
 
-struct UnitTest
+struct UnitTest : public Serializable
 {
     std::string class_name;
     std::string case_name;
+    SERIALIZE(class_name,case_name)
 };
 
 struct Chatter : public Serializable{

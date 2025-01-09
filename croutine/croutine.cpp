@@ -46,7 +46,7 @@ CRoutine::CRoutine(const std::function<void()> &func) : func_(func) {
     }
 
     MakeContext(CRoutineEntry, this, context_.get());
-
+    state_ = RoutineState::READY;
     updated_.test_and_set(std::memory_order_relaxed);
 }
 

@@ -212,7 +212,6 @@ void DataStream::write(const std::vector<T> & value)
 
     // 计算耗时（以微秒为单位）
     uint64_t elapsed  = end - start;
-    AINFO << "代码执行时间: " << elapsed << " 微秒" ;
 }
 
 template <typename T>

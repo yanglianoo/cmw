@@ -127,8 +127,6 @@ auto ReceiverManager<MessageT>::GetReceiver(const RoleAttributes& role_attr) ->
                     role_attr, [](const std::shared_ptr<MessageT>& msg,
                                   const transport::MessageInfo& msg_info,
                                   const RoleAttributes& subscriber_attr){
-                            (void)msg_info;
-                            (void)subscriber_attr;
                             data::DataDispatcher<MessageT>::Instance()->Dispatch(
                                 subscriber_attr.channel_id, msg);
                             }

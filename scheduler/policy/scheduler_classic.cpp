@@ -174,7 +174,6 @@ bool SchedulerClassic::DispatchTask(const std::shared_ptr<CRoutine>& cr){
         ClassicContext::cr_group_[cr->group_name()]
             .at(cr->priority()).emplace_back(cr);
     }
-
     // 唤醒协程所属的group内的processor执行任务
     ClassicContext::Notify(cr->group_name());
     return true;

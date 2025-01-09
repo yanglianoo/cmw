@@ -18,6 +18,7 @@ EXECUTABLES := test_writer test_reader test_serialize test_node_manager \
               test_channel_manager test_topology_manager test_publisher \
               test_subscriber test_log test_getenv test_croutine test_scheduler \
               test_task test_blocker test_class_loader test_node \
+              test_publisher_subscriber \
 
 
 # 找出源文件

@@ -58,6 +58,8 @@ bool ChannelBuffer<T>::Fetch(uint64_t* index,
             << *index << "] current_index[" << buffer_->Tail() << "] ";
         *index = buffer_->Tail();        
     }
+    m = buffer_->at(*index);
+    return true;
 }
 
 template <typename T>

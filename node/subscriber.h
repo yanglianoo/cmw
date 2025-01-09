@@ -189,10 +189,9 @@ bool Subscriber<MessageT>::Init(){
     }
     std::function<void(const std::shared_ptr<MessageT>&)> func;
     if(subscriber_func_ != nullptr){
-        
-        auto func =   [this](const std::shared_ptr<MessageT>& message){
-                        this->Enqueue(message);
-                        this->subscriber_func_(message);
+        func =   [this](const std::shared_ptr<MessageT>& msg){
+                        this->Enqueue(msg);
+                        this->subscriber_func_(msg);
                        };
 
     } else {

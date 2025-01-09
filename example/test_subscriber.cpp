@@ -10,18 +10,22 @@ struct TestMsg : public Serializable
 {
     uint64_t timestamp;  
 
-    std::vector<char> image;
+    uint64_t image;
     SERIALIZE(timestamp,image)
 };
 
 namespace george
 {
+    using namespace config;
     void test_rtps_sub(void)
     {
         config::RoleAttributes role_attr;
-        role_attr.channel_name = "/chatter0";
+        role_attr.channel_name = "exampletopic";
         role_attr.node_name = "subscriber";
-        role_attr.channel_id =common::GlobalData::RegisterChannel("/chatter0");
+        role_attr.channel_id =common::GlobalData::RegisterChannel("exampletopic");
+
+        TestMsg testmsg;
+        testmsg.timestamp = 0;
 
 
         Subscriber<TestMsg> subscriber(
@@ -202,13 +206,37 @@ void SubscriberTest2(){
 
     AINFO << "Finish SubscriberTest2";
 }
+
+void test_sub(){
+        config::RoleAttributes role_attr;
+        role_attr.channel_name = "exampletopic";
+        role_attr.node_name = "subscriber";
+        role_attr.channel_id =common::GlobalData::RegisterChannel("exampletopic");
+
+
+        Subscriber<ChangeMsg> subscriber(
+                role_attr,[](const std::shared_ptr<ChangeMsg>& msg){
+                    std::cout << "timestamp is "<< msg->timestamp<< std::endl;
+                });
+
+        std::boolalpha;
+
+        std::cout<<"Init subscriber " << subscriber.Init() << std::endl;
+
+        while (1)
+        {
+            /* code */
+        }
+}
 }
 
 int main()
 {
-    //george::test_rtps_sub();
+    
     hnu::cmw::Init("SubscriberTest");
-    Timer::SubscriberTest1();
-    Timer::SubscriberTest2();
+    //george::test_rtps_sub();
+    Timer::test_sub();
+    // Timer::SubscriberTest1();
+    // Timer::SubscriberTest2();
     return 0;
 }

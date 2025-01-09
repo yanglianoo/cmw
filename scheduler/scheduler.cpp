@@ -43,7 +43,6 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
     if(!DispatchTask(cr)){
         return false;
     }
-
     if(visitor != nullptr){
         visitor->RegisterNotifyCallback([this, task_id](){
             if(cyber_likely(stop_.load())){
